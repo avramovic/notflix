@@ -90,7 +90,7 @@ const getImagePath = (path) => {
   if (!path) return "/NotflixLogo.png";
   return path.startsWith("http")
     ? path
-    : `https://image.tmdb.org/t/p/w500${path}`;
+    : `${path}`;
 };
 
 function toggleMute() {

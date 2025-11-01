@@ -116,7 +116,7 @@ watch(isHovered, (newValue) => {
 function getContentImage(path) {
   if (!path) return "";
 
-  const imageUrl = `https://image.tmdb.org/t/p/w500${path}`;
+  const imageUrl = `${path}`;
 
   if (typeof window !== "undefined") {
     const img = new Image();

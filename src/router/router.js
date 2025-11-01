@@ -15,7 +15,7 @@ const routes = [
   {
     path: "/",
     name: "Root",
-    component: Landing,
+    component: Home,
   },
   {
     path: "/signup",
@@ -109,10 +109,15 @@ router.beforeEach(async (to, from, next) => {
 
   const waitForAuthReady = () => {
     return new Promise((resolve) => {
-      const unsubscribe = auth.onAuthStateChanged((user) => {
-        unsubscribe();
-        resolve(user);
+      //unsubscribe();
+      resolve({
+        uid: 0,
+        email: 'nobody@notflix.xyz',
+        displayName: "Guest",
+        photoURL: '', // @TODO: authUser.photoURL,
       });
+      //const unsubscribe = auth.onAuthStateChanged((user) => {
+      //});
     });
   };
 

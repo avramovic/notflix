@@ -376,6 +376,8 @@ onMounted(() => {
 onBeforeUnmount(() => {
   window.removeEventListener("resize", checkMobileView);
 });
+
+fetchAllContent();
 </script>
 
 <style scoped>

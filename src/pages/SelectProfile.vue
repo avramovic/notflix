@@ -54,7 +54,7 @@
 
       <div class="flex flex-wrap justify-center gap-4 md:gap-8">
         <div
-          v-for="profile in userStore.profiles"
+          v-for="profile in userStore.defaultGuestProfiles"
           :key="profile.id"
           class="relative flex flex-col items-center group cursor-pointer"
           @click="handleProfileClick(profile)"

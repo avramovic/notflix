@@ -9,7 +9,7 @@
         @click="emit('item-click', item)"
       >
         <img
-          :src="`https://image.tmdb.org/t/p/w300${item.poster_path}`"
+          :src="`${item.poster_path}`"
           :alt="item.title || item.name"
           class="w-full h-full object-cover"
           loading="lazy"

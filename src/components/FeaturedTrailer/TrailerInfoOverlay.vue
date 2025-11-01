@@ -20,7 +20,7 @@
     >
       <img
         v-if="logoPath"
-        :src="`https://image.tmdb.org/t/p/original${logoPath}`"
+        :src="`${logoPath}`"
         alt="Movie Logo"
         :class="logoStyle"
         draggable="false"

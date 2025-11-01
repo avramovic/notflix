@@ -33,7 +33,7 @@
           episode.episode_number
         }}</span>
         <img
-          :src="`https://image.tmdb.org/t/p/w300${episode.still_path}`"
+          :src="`${episode.still_path}`"
           class="w-40 h-24 object-cover rounded flex-shrink-0"
         />
         <div class="flex-1">

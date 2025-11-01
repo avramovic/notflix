@@ -121,7 +121,7 @@ const contentRating = ref(null);
 
 const backdrop = computed(() =>
   props.backdropPath
-    ? `https://image.tmdb.org/t/p/original${props.backdropPath}`
+    ? `${props.backdropPath}`
     : null
 );
 

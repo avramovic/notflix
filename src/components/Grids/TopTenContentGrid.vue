@@ -70,7 +70,7 @@
                 @click="handleContentClick(item)"
               >
                 <img
-                  :src="`https://image.tmdb.org/t/p/w500${item.poster_path}`"
+                  :src="`${item.poster_path}`"
                   :alt="item.title || item.name"
                   class="poster-image"
                   loading="lazy"

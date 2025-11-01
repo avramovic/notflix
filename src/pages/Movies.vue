@@ -307,6 +307,8 @@ onBeforeUnmount(() => {
 });
 
 onMounted(fetchAllContent);
+
+fetchAllContent();
 </script>
 
 <style scoped>

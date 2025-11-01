@@ -7,8 +7,8 @@
       <img
         :src="
           backdropPath
-            ? `https://image.tmdb.org/t/p/w1280${backdropPath}`
-            : `https://image.tmdb.org/t/p/w500${posterPath}`
+            ? `${backdropPath}`
+            : `${posterPath}`
         "
         :alt="title"
         class="w-full h-full object-cover"
@@ -24,7 +24,7 @@
       class="absolute bottom-16 w-full flex justify-center pointer-events-none"
     >
       <img
-        :src="`https://image.tmdb.org/t/p/w500${logoPath}`"
+        :src="`${logoPath}`"
         :alt="title"
         class="max-w-[60%] max-h-16"
       />

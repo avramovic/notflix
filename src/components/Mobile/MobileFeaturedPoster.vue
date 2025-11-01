@@ -223,12 +223,12 @@ const posterUrl = computed(() => {
   }
 
   const imageSize = process.env.NODE_ENV === "production" ? "w342" : "w500";
-  return `https://image.tmdb.org/t/p/${imageSize}${props.posterPath}`;
+  return `${props.posterPath}`;
 });
 
 const logoUrl = computed(() => {
   if (!props.logoPath) return "";
-  return `https://image.tmdb.org/t/p/w500${props.logoPath}`;
+  return `${props.logoPath}`;
 });
 
 const contentGenres = computed(() => {
@@ -316,7 +316,7 @@ function retryLoading() {
 
     const img = posterImageRef.value;
     if (img) {
-      const fallbackUrl = `https://image.tmdb.org/t/p/w185${
+      const fallbackUrl = `${
         props.posterPath
       }?retry=${Date.now()}`;
 

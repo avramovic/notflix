@@ -12,7 +12,7 @@
             <img
               :src="
                 item.backdrop_path
-                  ? `https://image.tmdb.org/t/p/w500${item.backdrop_path}`
+                  ? `${item.backdrop_path}`
                   : 'null'
               "
               :alt="item.title || item.name"
@@ -23,7 +23,7 @@
             >
               <img
                 v-if="logos[item.id]"
-                :src="`https://image.tmdb.org/t/p/w300${logos[item.id]}`"
+                :src="`${logos[item.id]}`"
                 :alt="`${item.title || item.name} Logo`"
                 class="max-h-16 w-auto drop-shadow-lg"
                 draggable="false"

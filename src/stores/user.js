@@ -26,7 +26,7 @@ import {
 export const useUserStore = defineStore("user", () => {
   // State
   const user = ref(null);
-  const isGuest = ref(false);
+  const isGuest = ref(true);
   const isLoading = ref(true);
   const error = ref(null);
   const currentProfile = ref(null);
@@ -97,7 +97,22 @@ export const useUserStore = defineStore("user", () => {
 
   async function init() {
     return new Promise((resolve) => {
-      isLoading.value = true;
+      isGuest.value = true;
+      user.value = {
+        uid: 0,
+        email: 'nobody@notflix.xyz',
+        displayName: "Guest",
+        photoURL: '', // @TODO: authUser.photoURL,
+      };
+
+      loadProfiles();
+
+      isLoading.value = false;
+
+      resolve();
+
+      return;
+
       onAuthStateChanged(auth, async (authUser) => {
         if (authUser) {
           isGuest.value = authUser.isAnonymous;
@@ -175,7 +190,7 @@ export const useUserStore = defineStore("user", () => {
       settings: { autoplay: true, maturityLevel: "all" },
     },
     {
-      name: "Family",
+      name: "Me",
       avatar: "/avatars/classic/Classic1.png",
       settings: { autoplay: true, maturityLevel: "all" },
     },
@@ -205,6 +220,8 @@ export const useUserStore = defineStore("user", () => {
       profilesLoaded.value = true;
       return;
     }
+
+    return defaultGuestProfiles;
     try {
       const profilesRef = collection(db, "users", user.value.uid, "profiles");
       const profilesSnapshot = await getDocs(profilesRef);
@@ -274,19 +291,24 @@ export const useUserStore = defineStore("user", () => {
   async function signInAsGuest() {
     clearError();
     try {
-      const userCredential = await signInAnonymously(auth);
-      const authUser = userCredential.user;
+      //const userCredential = await signInAnonymously(auth);
+      const authUser = {
+        uid: 0,
+        email: 'nobody@notflix.xyz',
+        displayName: "Guest",
+        photoURL: '', // @TODO: authUser.photoURL,
+      };
       isGuest.value = true;
-      const userRef = doc(db, "users", authUser.uid);
-      await setDoc(
-        userRef,
-        {
-          isGuest: true,
-          createdAt: serverTimestamp(),
-          lastLogin: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      // const userRef = doc(db, "users", authUser.uid);
+      // await setDoc(
+      //   userRef,
+      //   {
+      //     isGuest: true,
+      //     createdAt: serverTimestamp(),
+      //     lastLogin: serverTimestamp(),
+      //   },
+      //   { merge: true }
+      // );
       return authUser;
     } catch (err) {
       error.value = err.message || "Failed to sign in as guest";
@@ -475,6 +497,7 @@ export const useUserStore = defineStore("user", () => {
     error,
     profiles,
     currentProfile,
+    defaultGuestProfiles,
 
     isLoggedIn,
     currentMyList,

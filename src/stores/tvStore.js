@@ -2,11 +2,11 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = "https://api.themoviedb.org/3";
+const BASE_URL = "http://gdevelop-utils.test/imdb";
 
 export const useTVStore = defineStore("tv", () => {
   const genres = ref(null);
-  const tvShowDetails = ref({});
+  let tvShowDetails = ref({});
   const tvShowVideos = ref({});
   const loading = ref(false);
   const error = ref(null);
@@ -19,7 +19,7 @@ export const useTVStore = defineStore("tv", () => {
 
     try {
       const response = await fetch(
-        `${BASE_URL}/genre/tv/list?api_key=${API_KEY}&language=en-US`
+        `${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
       );
 
       if (!response.ok)
@@ -27,10 +27,13 @@ export const useTVStore = defineStore("tv", () => {
 
       const data = await response.json();
 
-      const genreLookup = {};
-      data.genres.forEach((genre) => {
-        genreLookup[genre.id] = genre.name;
-      });
+      let genreLookup = data.titles.reduce((acc, title) => {
+        for (const genre of title.genres ?? []) {
+          acc[genre] = genre;
+        }
+        // acc[genre.id] = genre.name;
+        return acc;
+      }, {});
 
       genres.value = genreLookup;
       return genreLookup;
@@ -50,16 +53,20 @@ export const useTVStore = defineStore("tv", () => {
     error.value = null;
 
     try {
+      let url = `${BASE_URL}/titles/${id}`;
       const response = await fetch(
-        `${BASE_URL}/tv/${id}?api_key=${API_KEY}&language=en-US&append_to_response=content_ratings,credits,similar,keywords`
+        url
       );
 
       if (!response.ok)
         throw new Error(`Failed to fetch TV show details: ${response.status}`);
 
       const data = await response.json();
-      tvShowDetails.value[id] = data;
-      return data;
+
+      let tmdb = imdbToTmdb(data);
+
+      tvShowDetails.value[id] = tmdb;
+      return tmdb;
     } catch (err) {
       console.error(`Error fetching details for TV show ${id}:`, err);
       error.value = err.message;
@@ -77,7 +84,7 @@ export const useTVStore = defineStore("tv", () => {
 
     try {
       const response = await fetch(
-        `${BASE_URL}/tv/${id}/videos?api_key=${API_KEY}&language=en-US`
+        `${BASE_URL}/titles/${id}`
       );
 
       if (!response.ok)
@@ -199,6 +206,41 @@ export const useTVStore = defineStore("tv", () => {
     tvShowVideos.value = {};
   }
 
+  function imdbToTmdb(title) {
+    let cast = [];
+    for (const actor of title.stars || []) {
+      cast.push({
+        adult: false,
+        character: actor.displayName,
+        id: actor.id,
+        geder: 0,
+        credit_id: actor.id,
+        name: actor.displayName,
+        known_for_department: actor.primaryProfessions?.length > 0 ? actor.primaryProfessions[0] : "actor",
+        profile_path: actor.primaryImage?.url ?? null,
+      });
+    }
+
+    return {
+      adult: false,
+      media_type: title.type === "movie" ? "movie" : "tv",
+      genre_ids: title.genres,
+      id: title.id,
+      original_language: "en",
+      original_title: title.originalTitle ?? title.primaryTitle ?? "Untitled",
+      overview: title.plot ?? "No overview available.",
+      popularity: title.rating?.voteCount ?? 0,
+      poster_path: title.primaryImage?.url,
+      backdrop_path: title.primaryImage?.url,
+      release_date: title.startYear ? title.startYear+'-01-01' : "unknown",
+      title: title.primaryTitle ?? title.originalTitle ?? "Untitled",
+      video: false,
+      vote_average: title.rating?.aggregateRating ?? 0,
+      vote_count: title.rating?.voteCount ?? 0,
+      cast: cast,
+    };
+  }
+
   return {
     genres,
     tvShowDetails,
@@ -209,6 +251,7 @@ export const useTVStore = defineStore("tv", () => {
     fetchGenres,
     getTVShowDetails,
     getTVShowVideos,
+    imdbToTmdb,
     searchTV,
     getTVRecommendations,
     getPopularTVShows,

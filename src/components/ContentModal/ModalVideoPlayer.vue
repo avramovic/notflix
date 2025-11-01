@@ -2,7 +2,7 @@
   <div class="relative w-full aspect-video bg-black">
     <img
       v-if="!trailerKey || trailerEnded"
-      :src="`https://image.tmdb.org/t/p/original${details.backdrop_path}`"
+      :src="`${details.backdrop_path}`"
       alt="Backdrop"
       class="w-full h-full object-cover"
     />
@@ -28,7 +28,7 @@
     <div class="absolute bottom-0 left-0 right-0 p-8">
       <img
         v-if="logoPath"
-        :src="`https://image.tmdb.org/t/p/w500${logoPath}`"
+        :src="`${logoPath}`"
         alt="Title Logo"
         class="lg:max-h-20 w-auto mb-6"
       />

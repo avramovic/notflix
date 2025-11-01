@@ -1,68 +1,138 @@
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = "https://api.themoviedb.org/3";
+const BASE_URL = "http://gdevelop-utils.test/imdb";
 const RATING_FILTER = "&certification_country=US&certification.lte=R";
 
+let preloadedMovies = {};
+
 const filterByBackdropPath = (results) =>
-  results.filter((item) => item.backdrop_path);
+  results.filter((item) => item.backdrop_path && item.release_date && item.overview);
+
+const imdbToTmdb = function(title) {
+  let cast = [];
+  for (const actor of title.stars || []) {
+    cast.push({
+      adult: false,
+      character: actor.displayName,
+      id: actor.id,
+      geder: 0,
+      credit_id: actor.id,
+      name: actor.displayName,
+      known_for_department: actor.primaryProfessions?.length > 0 ? actor.primaryProfessions[0] : "actor",
+      profile_path: actor.primaryImage?.url ?? null,
+    });
+  }
+
+  let seasons = [];
+  if (title.seasons && title.seasons.length > 0) {
+    for (const season of title.seasons) {
+      seasons.push({
+        air_date: title.startYear ? title.startYear+'-01-01' : null,
+        episode_count: season.episodeCount,
+        id: parseInt(season.season),
+        name: parseInt(season.season),
+        overview: null,
+        poster_path: title.primaryImage?.url ?? null,
+        season_number: parseInt(season.season),
+        vote_average: 0,
+      });
+    }
+  }
+
+  let type = title.type;
+
+  if (type === "tvSeries") {
+    type = "tv";
+  }
+
+  return {
+    adult: false,
+    media_type: type,
+    genre_ids: title.genres,
+    id: title.id,
+    original_language: "en",
+    original_title: title.originalTitle ?? title.primaryTitle ?? "Untitled",
+    overview: title.plot ?? null,
+    popularity: title.rating?.voteCount ?? 0,
+    poster_path: title.primaryImage?.url,
+    backdrop_path: title.primaryImage?.url,
+    release_date: title.startYear ? title.startYear+'-01-01' : null,
+    title: title.primaryTitle ?? title.originalTitle ?? "Untitled",
+    video: false,
+    vote_average: title.rating?.aggregateRating ?? 0,
+    vote_count: title.rating?.voteCount ?? 0,
+    cast: cast,
+    seasons: seasons,
+  };
+}
 
 /**
  * Fetch trending movies, filtered to exclude ratings above R.
  * @returns {Promise<Array>} List of popular movies
  */
 export async function fetchTrendingMovies() {
+  let url = `${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`;
   const res = await fetch(
-    `${BASE_URL}/discover/movie?api_key=${API_KEY}&sort_by=popularity.desc${RATING_FILTER}`
+    url
   );
   if (!res.ok) throw new Error("Failed to fetch movies");
   const data = await res.json();
-  return filterByBackdropPath(data.results);
+
+  const titles = [];
+  for (const title of data.titles) {
+    titles.push(imdbToTmdb(title));
+  }
+
+  const bag = {
+    results: titles,
+  }
+
+  return filterByBackdropPath(bag.results);
 }
 
 export async function fetchMoviesByGenre(genreId) {
   const res = await fetch(
-    `${BASE_URL}/discover/movie?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc${RATING_FILTER}`
+    `${BASE_URL}/titles?types=MOVIE&genres=${genreId}&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
   );
   if (!res.ok) throw new Error("Failed to fetch movies");
   const data = await res.json();
-  return filterByBackdropPath(data.results);
+
+  const titles = [];
+  for (const title of data.titles) {
+    titles.push(imdbToTmdb(title));
+  }
+
+  return filterByBackdropPath(titles);
 }
 
 export async function fetchMovieTrailers(movieId) {
-  const res = await fetch(
-    `${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}`
-  );
-  if (!res.ok) throw new Error("Failed to fetch trailers");
-  const data = await res.json();
+  const data = await fetchMovieDetails(movieId);
 
-  return data.results.filter(
+  return data.videos?.filter(
     (v) => v.site === "YouTube" && v.type === "Trailer"
   );
 }
 
 export async function fetchMovieLogos(movieId) {
-  const res = await fetch(
-    `${BASE_URL}/movie/${movieId}/images?api_key=${API_KEY}&include_image_language=en,null`
-  );
-  if (!res.ok) throw new Error("Failed to fetch images");
-  const data = await res.json();
-  const logos = data.logos.filter((l) => l.iso_639_1 === "en") || data.logos;
-  return logos.length > 0 ? logos[0].file_path : null;
+  // return null;
+  const data = await fetchMovieDetails(movieId);
+
+  let tmdb = imdbToTmdb(data);
+
+  return null;
+
+  return "https://dummyimage.com/300x100/000/fff.png&text="+encodeURIComponent(tmdb.title);
+
+  // const logos = data.logos.filter((l) => l.iso_639_1 === "en") || data.logos;
+  // return logos.length > 0 ? logos[0].file_path : null;
 }
 
 export async function fetchMovieRatings(movieId) {
   try {
-    const res = await fetch(
-      `${BASE_URL}/movie/${movieId}/release_dates?api_key=${API_KEY}`
-    );
+    const data = await fetchMovieDetails(movieId);
 
-    if (!res.ok) {
-      console.error("Rating API error:", await res.text());
-      return null;
-    }
+    return data.vote_average;
 
-    const data = await res.json();
-
-    const usRelease = data.results.find(
+    const usRelease = data.find(
       (country) => country.iso_3166_1 === "US"
     );
     if (
@@ -108,12 +178,24 @@ export async function fetchNewReleases() {
   const fromDate = sixtyDaysAgo.toISOString().split("T")[0];
   const toDate = today.toISOString().split("T")[0];
 
+  const year = today.getFullYear();
+
   const res = await fetch(
-    `${BASE_URL}/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${fromDate}&primary_release_date.lte=${toDate}&sort_by=popularity.desc${RATING_FILTER}`
+    `${BASE_URL}/titles?types=MOVIE&startYear=${year}&endYear=${year}&sortBy=SORT_BY_YEAR&sortOrder=DESC`
   );
   if (!res.ok) throw new Error("Failed to fetch new releases");
   const data = await res.json();
-  return filterByBackdropPath(data.results);
+
+  const titles = [];
+  for (const title of data.titles) {
+    titles.push(imdbToTmdb(title));
+  }
+
+  const bag = {
+    results: titles,
+  }
+
+  return filterByBackdropPath(bag.results);
 }
 
 /**
@@ -130,13 +212,15 @@ export async function fetchUpcomingMovies() {
     const fromDate = today.toISOString().split("T")[0];
     const toDate = futureDate.toISOString().split("T")[0];
 
-    const [page1Res, page2Res] = await Promise.all([
+    const year = today.getFullYear()+1;
+
+    const [page1Res] = await Promise.all([
       fetch(
-        `${BASE_URL}/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${fromDate}&primary_release_date.lte=${toDate}&sort_by=primary_release_date.asc&page=1${RATING_FILTER}`
+        `${BASE_URL}/titles?types=MOVIE&startYear=${year}&endYear=${year}&sortBy=SORT_BY_YEAR&sortOrder=DESC`
       ),
-      fetch(
-        `${BASE_URL}/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${fromDate}&primary_release_date.lte=${toDate}&sort_by=primary_release_date.asc&page=2${RATING_FILTER}`
-      ),
+      // fetch(
+      //   `${BASE_URL}/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${fromDate}&primary_release_date.lte=${toDate}&sort_by=primary_release_date.asc&page=2${RATING_FILTER}`
+      // ),
     ]);
 
     if (!page1Res.ok) {
@@ -145,17 +229,11 @@ export async function fetchUpcomingMovies() {
     }
 
     const data1 = await page1Res.json();
-    let results = [...data1.results];
+    // let results = [...data1.results];
 
-    if (page2Res.ok) {
-      const data2 = await page2Res.json();
-
-      const existingIds = new Set(results.map((m) => m.id));
-      const newMovies = data2.results.filter((m) => !existingIds.has(m.id));
-      results = [...results, ...newMovies];
-      console.log(`Added ${newMovies.length} more movies from page 2`);
-    } else {
-      console.warn("Upcoming Movies Page 2 failed:", page2Res.status);
+    const results = [];
+    for (const title of data1.titles) {
+      results.push(imdbToTmdb(title));
     }
 
     console.log(`Total upcoming movies fetched: ${results.length}`);
@@ -280,25 +358,45 @@ export async function fetchCriticallyAcclaimedMovies() {
 }
 
 export async function fetchTrendingTVShows() {
-  const res = await fetch(`${BASE_URL}/trending/tv/week?api_key=${API_KEY}`);
+  const res = await fetch(`${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`);
   if (!res.ok) throw new Error("Failed to fetch TV shows");
   const data = await res.json();
-  return filterByBackdropPath(data.results);
+
+  const titles = [];
+  for (const title of data.titles) {
+    titles.push(imdbToTmdb(title));
+  }
+
+  const bag = {
+    results: titles,
+  }
+
+  return filterByBackdropPath(bag.results);
 }
 
 export async function fetchTVShowsByGenre(genreId) {
   const res = await fetch(
-    `${BASE_URL}/discover/tv?api_key=${API_KEY}&with_genres=${genreId}&sort_by=popularity.desc`
+    `${BASE_URL}/titles?types=TV_SERIES&genres=${genreId}&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
   );
   if (!res.ok) throw new Error("Failed to fetch TV shows");
   const data = await res.json();
-  return filterByBackdropPath(data.results);
+
+  const titles = [];
+  for (const title of data.titles ?? []) {
+    titles.push(imdbToTmdb(title));
+  }
+
+  const bag = {
+    results: titles,
+  }
+
+  return filterByBackdropPath(bag.results);
 }
 
 export async function fetchTVShowTrailers(tvId) {
-  const res = await fetch(`${BASE_URL}/tv/${tvId}/videos?api_key=${API_KEY}`);
-  if (!res.ok) throw new Error("Failed to fetch trailers");
-  const data = await res.json();
+  const data = await fetchTVShowDetails(tvId);
+
+  return [];
 
   return data.results.filter(
     (v) => v.site === "YouTube" && v.type === "Trailer"
@@ -308,7 +406,7 @@ export async function fetchTVShowTrailers(tvId) {
 export async function fetchTVShowSeasonDetails(tvId, seasonNumber) {
   try {
     const res = await fetch(
-      `${BASE_URL}/tv/${tvId}/season/${seasonNumber}?api_key=${API_KEY}`
+      `${BASE_URL}/titles/${tvId}/episodes?season=${seasonNumber}`
     );
     if (!res.ok) {
       console.error(`Failed to fetch season ${seasonNumber} for TV ID ${tvId}`);
@@ -316,7 +414,31 @@ export async function fetchTVShowSeasonDetails(tvId, seasonNumber) {
       return { episodes: [] };
     }
     const data = await res.json();
-    return data;
+
+    let episodes = [];
+
+    for (const episode of data.episodes) {
+      episodes.push({
+        air_date: (new Date(episode.releaseDate?.year, episode.releaseDate?.month - 1, episode.releaseDate?.day))
+          .toISOString().split('T')[0],
+        episode_number: episode.episodeNumber,
+        id: episode.id,
+        name: episode.title || `Episode ${episode.episodeNumber}`,
+        overview: episode.plot || null,
+        production_code: null,
+        season_number: parseInt(episode.season),
+        show_id: tvId,
+        still_path: episode.primaryImage?.url ?? null,
+        vote_average: episode.rating?.aggregateRating ?? 0,
+        vote_count: episode.rating?.voteCount ?? 0,
+      });
+    }
+
+    let bag = {
+      episodes: episodes,
+    };
+
+    return bag;
   } catch (error) {
     console.error("Error fetching TV show season details:", error);
     return { episodes: [] };
@@ -324,11 +446,9 @@ export async function fetchTVShowSeasonDetails(tvId, seasonNumber) {
 }
 
 export async function fetchTVShowLogos(tvId) {
-  const res = await fetch(
-    `${BASE_URL}/tv/${tvId}/images?api_key=${API_KEY}&include_image_language=en,null`
-  );
-  if (!res.ok) throw new Error("Failed to fetch images");
-  const data = await res.json();
+  const data = await fetchTVShowDetails(tvId);
+
+  return null;
 
   const logos = data.logos.filter((l) => l.iso_639_1 === "en") || data.logos;
   return logos.length > 0 ? logos[0].file_path : null;
@@ -336,16 +456,9 @@ export async function fetchTVShowLogos(tvId) {
 
 export async function fetchTVShowRatings(tvId) {
   try {
-    const res = await fetch(
-      `${BASE_URL}/tv/${tvId}/content_ratings?api_key=${API_KEY}`
-    );
+    const data = await fetchTVShowDetails(tvId);
 
-    if (!res.ok) {
-      console.error("Rating API error:", await res.text());
-      return null;
-    }
-
-    const data = await res.json();
+    return data.vote_average;
 
     const usRating = data.results.find((rating) => rating.iso_3166_1 === "US");
     if (usRating && usRating.rating) {
@@ -372,11 +485,21 @@ export async function fetchTVShowRatings(tvId) {
  */
 export async function fetchTopTenMovies() {
   const res = await fetch(
-    `${BASE_URL}/discover/movie?api_key=${API_KEY}&sort_by=popularity.desc&region=US${RATING_FILTER}`
+    `${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
   );
   if (!res.ok) throw new Error("Failed to fetch top movies");
   const data = await res.json();
-  return filterByBackdropPath(data.results)
+
+  const titles = [];
+  for (const title of data.titles) {
+    titles.push(imdbToTmdb(title));
+  }
+
+  const bag = {
+    results: titles,
+  }
+
+  return filterByBackdropPath(bag.results)
     .slice(0, 10)
     .map((movie, index) => ({ ...movie, ranking: index + 1 }));
 }
@@ -387,97 +510,181 @@ export async function fetchTopTenMovies() {
  */
 export async function fetchTopTenTVShows() {
   const res = await fetch(
-    `${BASE_URL}/trending/tv/week?api_key=${API_KEY}&region=US`
+    `${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
   );
-  if (!res.ok) throw new Error("Failed to fetch top TV shows");
+  if (!res.ok) throw new Error("Failed to fetch top shows");
   const data = await res.json();
-  return filterByBackdropPath(data.results)
+
+  const titles = [];
+  console.log(data.titles);
+  for (const title of data.titles ?? []) {
+    titles.push(imdbToTmdb(title));
+  }
+
+  const bag = {
+    results: titles,
+  }
+
+  return filterByBackdropPath(bag.results)
     .slice(0, 10)
-    .map((show, index) => ({ ...show, ranking: index + 1 }));
+    .map((movie, index) => ({ ...movie, ranking: index + 1 }));
 }
 
 export async function fetchMovieDetails(movieId) {
+  if (preloadedMovies[movieId]) {
+    return preloadedMovies[movieId];
+  }
   const res = await fetch(
-    `${BASE_URL}/movie/${movieId}?api_key=${API_KEY}&append_to_response=credits,similar,images`
+    `${BASE_URL}/titles/${movieId}`
   );
   if (!res.ok)
     throw new Error(`Failed to fetch movie details for ID: ${movieId}`);
-  const data = await res.json();
-  return data;
+
+  const title = await res.json();
+  preloadedMovies[movieId] = imdbToTmdb(title);
+  return preloadedMovies[movieId];
 }
 
 export async function fetchTVShowDetails(tvId) {
+  if (preloadedMovies[tvId]) {
+    return preloadedMovies[tvId];
+  }
   const res = await fetch(
-    `${BASE_URL}/tv/${tvId}?api_key=${API_KEY}&append_to_response=credits,similar,images`
+    `${BASE_URL}/titles/${tvId}`
   );
   if (!res.ok)
     throw new Error(`Failed to fetch TV show details for ID: ${tvId}`);
-  const data = await res.json();
-  return data;
+  const title = await res.json();
+
+
+  const res2 = await fetch(
+    `${BASE_URL}/titles/${tvId}/seasons`
+  );
+  if (!res2.ok)
+    throw new Error(`Failed to fetch TV show seasons for ID: ${tvId}`);
+  const seasons = await res2.json();
+
+  title.seasons = seasons.seasons;
+
+  preloadedMovies[tvId] = imdbToTmdb(title);
+  return preloadedMovies[tvId];
 }
 
 export async function fetchMovieCast(movieId) {
-  const res = await fetch(
-    `${BASE_URL}/movie/${movieId}/credits?api_key=${API_KEY}`
-  );
-  if (!res.ok) throw new Error(`Failed to fetch cast for movie ID: ${movieId}`);
-  const data = await res.json();
-  return data.cast || [];
+  const data = await fetchMovieDetails(movieId);
+
+  let tmdb = imdbToTmdb(data);
+  return tmdb.cast || [];
 }
 
 export async function fetchTVShowCast(tvId) {
-  const res = await fetch(`${BASE_URL}/tv/${tvId}/credits?api_key=${API_KEY}`);
-  if (!res.ok) throw new Error(`Failed to fetch cast for TV show ID: ${tvId}`);
-  const data = await res.json();
-  return data.cast || [];
+  const data = await fetchTVShowDetails(tvId);
+  let tmdb = imdbToTmdb(data);
+  return tmdb.cast || [];
 }
 
 export async function fetchSimilarMovies(movieId) {
-  const res = await fetch(
-    `${BASE_URL}/movie/${movieId}/similar?api_key=${API_KEY}`
-  );
-  if (!res.ok)
-    throw new Error(`Failed to fetch similar movies for ID: ${movieId}`);
-  const data = await res.json();
-  return filterByBackdropPath(data.results || []);
+  const title = await fetchMovieDetails(movieId);
+
+  let genreParams = [];
+  for (const genre of title.genre_ids) {
+    console.warn('genre:' + genre);
+    genreParams.push("genres=" + encodeURIComponent(genre));
+  }
+
+  const res2 = await fetch(`${BASE_URL}/titles/?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=DESC&${genreParams.join('&')}`);
+  if (!res2.ok)
+    throw new Error(`Failed to fetch similar TV shows for ID: ${movieId}`);
+  const data = await res2.json();
+
+  const titles = [];
+  for (const movie of data.titles) {
+    titles.push(imdbToTmdb(movie));
+  }
+
+  const bag = {
+    results: titles.filter((t) => t.id !== movieId),
+  }
+
+  return filterByBackdropPath(bag.results || []);
 }
 
 export async function fetchSimilarTVShows(tvId) {
-  const res = await fetch(`${BASE_URL}/tv/${tvId}/similar?api_key=${API_KEY}`);
+  const title = await fetchTVShowDetails(tvId);
+
+  let genreParams = [];
+  for (const genre of title.genre_ids) {
+    genreParams.push("genres=" + encodeURIComponent(genre));
+  }
+
+  const res = await fetch(`${BASE_URL}/titles/?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC&${genreParams.join('&')}`);
   if (!res.ok)
     throw new Error(`Failed to fetch similar TV shows for ID: ${tvId}`);
   const data = await res.json();
-  return filterByBackdropPath(data.results || []);
+
+  const titles = [];
+  for (const show of data.titles) {
+    titles.push(imdbToTmdb(show));
+  }
+
+  const bag = {
+    results: titles.filter((t) => t.id !== tvId),
+  }
+
+  return filterByBackdropPath(bag.results || []);
 }
 
 export const MOVIE_GENRES = {
-  ACTION: 28,
-  COMEDY: 35,
-  HORROR: 27,
-  ROMANCE: 10749,
-  DOCUMENTARY: 99,
+  ACTION: "Action",
+  COMEDY: "Comedy",
+  HORROR: "Horror",
+  ROMANCE: "Romance",
+  DOCUMENTARY: "Documentary",
 };
 
 export const TV_GENRES = {
-  ACTION_ADVENTURE: 10759,
-  COMEDY: 35,
-  DRAMA: 18,
-  REALITY: 10764,
-  CRIME: 80,
-  DOCUMENTARY: 99,
+  ACTION_ADVENTURE: "Action",
+  COMEDY: "Comedy",
+  DRAMA: "Drama",
+  REALITY: "Reality",
+  CRIME: "Crime",
+  DOCUMENTARY: "Documentary",
 };
 
 export async function fetchTVShowSeasons(tvId) {
   try {
     const res = await fetch(
-      `${BASE_URL}/tv/${tvId}/season/1?api_key=${API_KEY}`
+      `${BASE_URL}/titles/${tvId}/episodes?season=1`
     );
     if (!res.ok) {
-      console.error(`Failed to fetch TV show seasons for ID: ${tvId}`);
-      return [];
+      console.error(`Failed to fetch season 1 for TV ID ${tvId}`);
+
+      return { episodes: [] };
     }
     const data = await res.json();
-    return data.episodes || [];
+
+    let episodes = [];
+
+    for (const episode of data.episodes) {
+      episodes.push({
+        air_date: (new Date(episode.releaseDate.year, episode.releaseDate.month - 1, episode.releaseDate.day))
+          .toISOString().split('T')[0],
+        episode_number: episode.episodeNumber,
+        id: episode.id,
+        name: episode.title || `Episode ${episode.episodeNumber}`,
+        overview: episode.plot || null,
+        production_code: null,
+        season_number: episode.season.toString(),
+        show_id: tvId,
+        still_path: episode.primaryImage?.url ?? null,
+        vote_average: episode.rating?.aggregateRating ?? 0,
+        vote_count: episode.rating?.voteCount ?? 0,
+      });
+    }
+
+    console.log(episodes);
+
+    return episodes;
   } catch (error) {
     console.error("Error fetching TV show seasons:", error);
     return [];
@@ -495,14 +702,22 @@ export async function fetchTVShowCredits(tvId) {
 export async function searchMulti(query, page = 1) {
   try {
     const response = await fetch(
-      `https://api.themoviedb.org/3/search/multi?api_key=${API_KEY}&language=en-US&query=${encodeURIComponent(
-        query
-      )}&page=${page}&include_adult=false`
+      `${BASE_URL}/search/titles?query=${encodeURIComponent(query)}`
     );
     if (!response.ok) throw new Error(`TMDB API error: ${response.status}`);
     const data = await response.json();
+
+    const titles = [];
+    for (const title of data.titles) {
+      titles.push(imdbToTmdb(title));
+    }
+
+    const bag = {
+      results: titles,
+    }
+
     return filterByBackdropPath(
-      data.results.filter(
+      bag.results.filter(
         (item) => item.media_type === "movie" || item.media_type === "tv"
       ) || []
     );

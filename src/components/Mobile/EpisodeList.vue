@@ -50,7 +50,7 @@
           <img
             :src="
               episode.still_path
-                ? `https://image.tmdb.org/t/p/w300${episode.still_path}`
+                ? `${episode.still_path}`
                 : 'https://via.placeholder.com/300x169/000000/FFFFFF?text=No+Preview'
             "
             :alt="episode.name"
