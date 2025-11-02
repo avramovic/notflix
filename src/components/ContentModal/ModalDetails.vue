@@ -67,7 +67,7 @@
       <span
         v-if="contentRating"
         class="border px-1 text-sm text-netflix-gray-25 border-netfilx-gray-100 leading-tight"
-        >{{ contentRating }}</span
+        >{{ contentRating }} / 10</span
       >
       <p
         class="text-white mb-6 xl:text-sm 2xl:text-md 3xl:text-lg mt-4 xl:w-md 2xl:w-lg 3xl:max-w-3xl"
@@ -117,12 +117,12 @@ const formatRuntime = (minutes) => {
 
 const castList = computed(
   () =>
-    props.cast
+    props.details?.credits?.cast
       ?.slice(0, 3)
       .map((c) => c.name)
       .join(", ") || ""
 );
 const genreList = computed(
-  () => props.details?.genres?.map((g) => g.name).join(", ") || ""
+  () => props.details?.genre_ids?.map((g) => g).join(", ") || ""
 );
 </script>

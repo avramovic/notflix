@@ -79,6 +79,8 @@
           :trailer-ended="trailerEnded"
           :is-muted="isMuted"
           :content-rating="contentRating"
+          :movie-id="movieId"
+          :content-type="contentType"
           @toggle-mute="isMuted = !isMuted"
           @replay="replayTrailer"
           @show-more-info="moreInfoClick"

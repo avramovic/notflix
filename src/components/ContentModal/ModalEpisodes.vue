@@ -8,7 +8,7 @@
           class="w-full bg-netflix-gray-250 border border-netflix-gray-100 text-white py-2 px-4 rounded flex justify-between items-center font-semibold text-lg cursor-pointer"
         >
           <option
-            v-for="season in seasons"
+            v-for="season in seasons.sort((a, b) => Number(a.season_number) - Number(b.season_number))"
             :key="season.id"
             :value="season.season_number"
             class="cursor-pointer"
@@ -27,7 +27,8 @@
       <div
         v-for="episode in episodes"
         :key="episode.id"
-        class="flex items-center gap-4 p-2 rounded hover:bg-white/10"
+        class="flex items-center gap-4 p-2 rounded hover:bg-white/10 cursor-pointer"
+        @click="playEpisode(episode, $event)"
       >
         <span class="text-xl font-bold text-gray-400">{{
           episode.episode_number
@@ -55,6 +56,67 @@ const props = defineProps({
   tvId: { type: Number, required: true },
   seasons: { type: Array, default: () => [] },
 });
+
+const playEpisode = (episode, event) => {
+  let base_url = 'https://proxy.garageband.rocks/embed';
+
+  let video_url = base_url + '/tv/' + props.tvId + '/'+episode.season_number+'-'+episode.episode_number+'?autonext=1';
+
+  if (event.ctrlKey || event.metaKey) {
+    window.open(video_url);
+  } else {
+    createLightbox(video_url);
+  }
+}
+
+const createLightbox = (iframeSrc) => {
+  // Create lightbox container
+  const lightbox = document.createElement('div');
+  Object.assign(lightbox.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: '9999',
+  });
+
+  // Create iframe
+  const iframe = document.createElement('iframe');
+  Object.assign(iframe.style, {
+    width: '90%',
+    height: '90%',
+    border: 'none',
+    borderRadius: '8px',
+  });
+  iframe.allowFullscreen = true;
+  iframe.src = iframeSrc;
+
+  // Append iframe to lightbox
+  lightbox.appendChild(iframe);
+
+  // Close lightbox when clicking outside iframe
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) {
+      lightbox.remove();
+    }
+  });
+
+  // Close lightbox when ESC is pressed
+  document.addEventListener('keyup', function (event) {
+    if (event.key === "Escape") {
+      lightbox.remove();
+    }
+  });
+
+  // Add lightbox to the body
+  document.body.appendChild(lightbox);
+}
+
 
 const isLoadingEpisodes = ref(false);
 
@@ -85,4 +147,8 @@ watch(selectedSeason, (newSeason) => {
 onMounted(() => {
   fetchEpisodes(selectedSeason.value);
 });
+
+
+
+
 </script>

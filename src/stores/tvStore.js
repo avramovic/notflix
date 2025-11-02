@@ -19,7 +19,7 @@ export const useTVStore = defineStore("tv", () => {
 
     try {
       const response = await fetch(
-        `${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
+        `${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=1.0`
       );
 
       if (!response.ok)
@@ -237,7 +237,9 @@ export const useTVStore = defineStore("tv", () => {
       video: false,
       vote_average: title.rating?.aggregateRating ?? 0,
       vote_count: title.rating?.voteCount ?? 0,
-      cast: cast,
+      credits: {
+        cast: cast,
+      },
     };
   }
 

@@ -47,9 +47,8 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       headers: {
-        "Cross-Origin-Embedder-Policy": "credentialless",
-        "Cross-Origin-Opener-Policy": "same-origin",
-      },
+        "Content-Security-Policy": "frame-src *;"
+      }
     },
   };
 });

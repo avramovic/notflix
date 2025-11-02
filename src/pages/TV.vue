@@ -51,7 +51,7 @@
         />
         <FeaturedTrailer
           v-if="featuredTVShow && !isMobileView"
-          :title="featuredTVShow.name"
+          :title="featuredTVShow.name || featuredTVShow.title"
           :overview="featuredTVShow.overview"
           :backdrop-path="featuredTVShow.backdrop_path"
           :trailer-key="featuredTrailerKey"
@@ -168,11 +168,11 @@ const gridConfig = [
     fetcher: () => fetchTVShowsByGenre(TV_GENRES.CRIME),
   },
   {
-    id: "realityTV",
-    title: "Reality TV",
+    id: "comedyTV",
+    title: "Comedy",
     component: ContentCarousel,
     contentType: "tv",
-    fetcher: () => fetchTVShowsByGenre(TV_GENRES.REALITY),
+    fetcher: () => fetchTVShowsByGenre(TV_GENRES.COMEDY),
   },
   {
     id: "documentaryTV",
@@ -312,13 +312,13 @@ const fetchAllContent = async () => {
       });
     });
 
-    const allLogos = await Promise.all(logoPromises);
-    allLogos.forEach(({ gridId, itemId, logo }) => {
-      if (logo) {
-        const grid = contentGrids.value.find((g) => g.id === gridId);
-        if (grid) grid.logos[itemId] = logo;
-      }
-    });
+    // const allLogos = await Promise.all(logoPromises);
+    // allLogos.forEach(({ gridId, itemId, logo }) => {
+    //   if (logo) {
+    //     const grid = contentGrids.value.find((g) => g.id === gridId);
+    //     if (grid) grid.logos[itemId] = logo;
+    //   }
+    // });
 
     const showsWithBackdrop = contentGrids.value[0].items.filter(
       (s) => s.backdrop_path
@@ -329,12 +329,12 @@ const fetchAllContent = async () => {
 
       const showDetails = await fetchTVShowDetails(featuredTVShow.value.id);
 
-      [featuredLogo.value, featuredTrailerKey.value] = await Promise.all([
-        fetchTVShowLogos(featuredTVShow.value.id),
-        fetchTVShowTrailers(featuredTVShow.value.id).then(
-          (trailers) => trailers[0]?.key || null
-        ),
-      ]);
+      // [featuredLogo.value, featuredTrailerKey.value] = await Promise.all([
+      //   fetchTVShowLogos(featuredTVShow.value.id),
+      //   fetchTVShowTrailers(featuredTVShow.value.id).then(
+      //     (trailers) => trailers[0]?.key || null
+      //   ),
+      // ]);
       featuredTVShow.value = { ...featuredTVShow.value, ...showDetails };
     }
   } catch (error) {

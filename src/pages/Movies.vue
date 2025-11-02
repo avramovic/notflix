@@ -264,13 +264,13 @@ async function fetchAllContent() {
       });
     });
 
-    const allLogos = await Promise.all(logoPromises);
-    allLogos.forEach(({ gridId, itemId, logo }) => {
-      if (logo) {
-        const grid = contentGrids.value.find((g) => g.id === gridId);
-        if (grid) grid.logos[itemId] = logo;
-      }
-    });
+    // const allLogos = await Promise.all(logoPromises);
+    // allLogos.forEach(({ gridId, itemId, logo }) => {
+    //   if (logo) {
+    //     const grid = contentGrids.value.find((g) => g.id === gridId);
+    //     if (grid) grid.logos[itemId] = logo;
+    //   }
+    // });
 
     const trendingMovies = contentGrids.value.find(
       (g) => g.id === "trending"
@@ -283,12 +283,12 @@ async function fetchAllContent() {
         ];
       featuredMovie.value = randomMovie;
 
-      [featuredLogo.value, featuredTrailerKey.value] = await Promise.all([
-        fetchMovieLogos(randomMovie.id),
-        fetchMovieTrailers(randomMovie.id).then(
-          (trailers) => trailers[0]?.key || null
-        ),
-      ]);
+      // [featuredLogo.value, featuredTrailerKey.value] = await Promise.all([
+      //   fetchMovieLogos(randomMovie.id),
+      //   fetchMovieTrailers(randomMovie.id).then(
+      //     (trailers) => trailers[0]?.key || null
+      //   ),
+      // ]);
     }
   } catch (err) {
     console.error("Error fetching movies:", err);
@@ -308,7 +308,7 @@ onBeforeUnmount(() => {
 
 onMounted(fetchAllContent);
 
-fetchAllContent();
+// fetchAllContent();
 </script>
 
 <style scoped>

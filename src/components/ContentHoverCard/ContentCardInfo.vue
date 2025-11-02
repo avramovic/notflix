@@ -1,5 +1,8 @@
 <template>
   <div>
+    <div class="mt-4 mb-4 text-sm text-white">
+      {{ item.overview }}
+    </div>
     <div class="flex items-center gap-2 text-md">
       <span class="border border-gray-400 px-3 text-gray-400 font-semibold">{{
         contentRating
@@ -14,7 +17,7 @@
     </div>
 
     <div class="mt-2 text-md text-white">
-      <span v-for="(genre, i) in genres" :key="genre">
+      <span class="text-gray-400" v-for="(genre, i) in genres" :key="genre">
         {{ genre }}{{ i < genres.length - 1 ? " • " : "" }}
       </span>
     </div>

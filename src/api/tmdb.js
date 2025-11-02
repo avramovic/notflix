@@ -5,7 +5,7 @@ const RATING_FILTER = "&certification_country=US&certification.lte=R";
 let preloadedMovies = {};
 
 const filterByBackdropPath = (results) =>
-  results.filter((item) => item.backdrop_path && item.release_date && item.overview);
+  results.filter((item) => item.backdrop_path && item.release_date && item.genre_ids);
 
 const imdbToTmdb = function(title) {
   let cast = [];
@@ -14,7 +14,7 @@ const imdbToTmdb = function(title) {
       adult: false,
       character: actor.displayName,
       id: actor.id,
-      geder: 0,
+      gender: 0,
       credit_id: actor.id,
       name: actor.displayName,
       known_for_department: actor.primaryProfessions?.length > 0 ? actor.primaryProfessions[0] : "actor",
@@ -60,7 +60,9 @@ const imdbToTmdb = function(title) {
     video: false,
     vote_average: title.rating?.aggregateRating ?? 0,
     vote_count: title.rating?.voteCount ?? 0,
-    cast: cast,
+    credits: {
+      cast: cast,
+    },
     seasons: seasons,
   };
 }
@@ -70,7 +72,7 @@ const imdbToTmdb = function(title) {
  * @returns {Promise<Array>} List of popular movies
  */
 export async function fetchTrendingMovies() {
-  let url = `${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`;
+  let url = `${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=1.0`;
   const res = await fetch(
     url
   );
@@ -82,16 +84,14 @@ export async function fetchTrendingMovies() {
     titles.push(imdbToTmdb(title));
   }
 
-  const bag = {
-    results: titles,
-  }
+  console.log('trending movies fetched:', titles);
 
-  return filterByBackdropPath(bag.results);
+  return filterByBackdropPath(titles);
 }
 
 export async function fetchMoviesByGenre(genreId) {
   const res = await fetch(
-    `${BASE_URL}/titles?types=MOVIE&genres=${genreId}&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
+    `${BASE_URL}/titles?types=MOVIE&genres=${genreId}&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=1.0`
   );
   if (!res.ok) throw new Error("Failed to fetch movies");
   const data = await res.json();
@@ -181,7 +181,7 @@ export async function fetchNewReleases() {
   const year = today.getFullYear();
 
   const res = await fetch(
-    `${BASE_URL}/titles?types=MOVIE&startYear=${year}&endYear=${year}&sortBy=SORT_BY_YEAR&sortOrder=DESC`
+    `${BASE_URL}/titles?types=MOVIE&types=TV_SERIES&startYear=${year}&endYear=${year}&sortBy=SORT_BY_YEAR&sortOrder=DESC&minAggregateRating=1.0`
   );
   if (!res.ok) throw new Error("Failed to fetch new releases");
   const data = await res.json();
@@ -191,11 +191,7 @@ export async function fetchNewReleases() {
     titles.push(imdbToTmdb(title));
   }
 
-  const bag = {
-    results: titles,
-  }
-
-  return filterByBackdropPath(bag.results);
+  return filterByBackdropPath(titles);
 }
 
 /**
@@ -216,7 +212,7 @@ export async function fetchUpcomingMovies() {
 
     const [page1Res] = await Promise.all([
       fetch(
-        `${BASE_URL}/titles?types=MOVIE&startYear=${year}&endYear=${year}&sortBy=SORT_BY_YEAR&sortOrder=DESC`
+        `${BASE_URL}/titles?types=MOVIE&startYear=${year}&endYear=${year}&sortBy=SORT_BY_YEAR&sortOrder=ASC&minAggregateRating=1.0`
       ),
       // fetch(
       //   `${BASE_URL}/discover/movie?api_key=${API_KEY}&primary_release_date.gte=${fromDate}&primary_release_date.lte=${toDate}&sort_by=primary_release_date.asc&page=2${RATING_FILTER}`
@@ -358,7 +354,7 @@ export async function fetchCriticallyAcclaimedMovies() {
 }
 
 export async function fetchTrendingTVShows() {
-  const res = await fetch(`${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`);
+  const res = await fetch(`${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=1.0`);
   if (!res.ok) throw new Error("Failed to fetch TV shows");
   const data = await res.json();
 
@@ -367,16 +363,12 @@ export async function fetchTrendingTVShows() {
     titles.push(imdbToTmdb(title));
   }
 
-  const bag = {
-    results: titles,
-  }
-
-  return filterByBackdropPath(bag.results);
+  return filterByBackdropPath(titles);
 }
 
 export async function fetchTVShowsByGenre(genreId) {
   const res = await fetch(
-    `${BASE_URL}/titles?types=TV_SERIES&genres=${genreId}&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
+    `${BASE_URL}/titles?types=TV_SERIES&genres=${genreId}&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=1.0`
   );
   if (!res.ok) throw new Error("Failed to fetch TV shows");
   const data = await res.json();
@@ -386,11 +378,7 @@ export async function fetchTVShowsByGenre(genreId) {
     titles.push(imdbToTmdb(title));
   }
 
-  const bag = {
-    results: titles,
-  }
-
-  return filterByBackdropPath(bag.results);
+  return filterByBackdropPath(titles);
 }
 
 export async function fetchTVShowTrailers(tvId) {
@@ -485,21 +473,24 @@ export async function fetchTVShowRatings(tvId) {
  */
 export async function fetchTopTenMovies() {
   const res = await fetch(
-    `${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
+    `${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=7.0`
   );
   if (!res.ok) throw new Error("Failed to fetch top movies");
   const data = await res.json();
 
   const titles = [];
-  for (const title of data.titles) {
+  for (let i=0; i<data.titles.length; i++) {
+    let title = data.titles[i];
     titles.push(imdbToTmdb(title));
   }
+  console.log('top movies fetched:', titles);
 
-  const bag = {
-    results: titles,
-  }
+let tmp = filterByBackdropPath(titles)
+  .slice(0, 10)
+  .map((movie, index) => ({ ...movie, ranking: index + 1 }));
+  console.log('top ten movies fetched:', tmp);
 
-  return filterByBackdropPath(bag.results)
+  return filterByBackdropPath(titles)
     .slice(0, 10)
     .map((movie, index) => ({ ...movie, ranking: index + 1 }));
 }
@@ -510,7 +501,7 @@ export async function fetchTopTenMovies() {
  */
 export async function fetchTopTenTVShows() {
   const res = await fetch(
-    `${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
+    `${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=5.0`
   );
   if (!res.ok) throw new Error("Failed to fetch top shows");
   const data = await res.json();
@@ -521,11 +512,7 @@ export async function fetchTopTenTVShows() {
     titles.push(imdbToTmdb(title));
   }
 
-  const bag = {
-    results: titles,
-  }
-
-  return filterByBackdropPath(bag.results)
+  return filterByBackdropPath(titles)
     .slice(0, 10)
     .map((movie, index) => ({ ...movie, ranking: index + 1 }));
 }
@@ -574,25 +561,24 @@ export async function fetchMovieCast(movieId) {
   const data = await fetchMovieDetails(movieId);
 
   let tmdb = imdbToTmdb(data);
-  return tmdb.cast || [];
+  return tmdb.credits.cast || [];
 }
 
 export async function fetchTVShowCast(tvId) {
   const data = await fetchTVShowDetails(tvId);
   let tmdb = imdbToTmdb(data);
-  return tmdb.cast || [];
+  return tmdb.credits.cast || [];
 }
 
 export async function fetchSimilarMovies(movieId) {
   const title = await fetchMovieDetails(movieId);
 
   let genreParams = [];
-  for (const genre of title.genre_ids) {
-    console.warn('genre:' + genre);
+  for (const genre of title.genre_ids ?? []) {
     genreParams.push("genres=" + encodeURIComponent(genre));
   }
 
-  const res2 = await fetch(`${BASE_URL}/titles/?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=DESC&${genreParams.join('&')}`);
+  const res2 = await fetch(`${BASE_URL}/titles/?types=MOVIE&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
   if (!res2.ok)
     throw new Error(`Failed to fetch similar TV shows for ID: ${movieId}`);
   const data = await res2.json();
@@ -602,22 +588,18 @@ export async function fetchSimilarMovies(movieId) {
     titles.push(imdbToTmdb(movie));
   }
 
-  const bag = {
-    results: titles.filter((t) => t.id !== movieId),
-  }
-
-  return filterByBackdropPath(bag.results || []);
+  return filterByBackdropPath(titles.filter((t) => t.id !== movieId) || []);
 }
 
 export async function fetchSimilarTVShows(tvId) {
   const title = await fetchTVShowDetails(tvId);
 
   let genreParams = [];
-  for (const genre of title.genre_ids) {
+  for (const genre of title.genre_ids ?? []) {
     genreParams.push("genres=" + encodeURIComponent(genre));
   }
 
-  const res = await fetch(`${BASE_URL}/titles/?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&sortOrder=DESC&${genreParams.join('&')}`);
+  const res = await fetch(`${BASE_URL}/titles/?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
   if (!res.ok)
     throw new Error(`Failed to fetch similar TV shows for ID: ${tvId}`);
   const data = await res.json();
@@ -627,11 +609,7 @@ export async function fetchSimilarTVShows(tvId) {
     titles.push(imdbToTmdb(show));
   }
 
-  const bag = {
-    results: titles.filter((t) => t.id !== tvId),
-  }
-
-  return filterByBackdropPath(bag.results || []);
+  return filterByBackdropPath(titles.filter((t) => t.id !== tvId) || []);
 }
 
 export const MOVIE_GENRES = {
@@ -712,15 +690,15 @@ export async function searchMulti(query, page = 1) {
       titles.push(imdbToTmdb(title));
     }
 
-    const bag = {
-      results: titles,
-    }
+    return titles.filter(
+      (item) => item.media_type === "movie" || item.media_type === "tv"
+    ) || [];
 
-    return filterByBackdropPath(
-      bag.results.filter(
-        (item) => item.media_type === "movie" || item.media_type === "tv"
-      ) || []
-    );
+    // return filterByBackdropPath(
+    //   bag.results.filter(
+    //     (item) => item.media_type === "movie" || item.media_type === "tv"
+    //   ) || []
+    // );
   } catch (error) {
     console.error("Error searching TMDB:", error);
     return [];

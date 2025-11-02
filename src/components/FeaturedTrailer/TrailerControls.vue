@@ -4,7 +4,8 @@
   >
     <div class="flex flex-row items-center gap-4">
       <button
-        class="bg-white hover:bg-white/80 lg:px-6 xl:px-6 2xl:px-9 3xl:px-10 lg:py-2 2xl:py-2.5 3xl:py-3 rounded transition cursor-pointer flex items-center justify-center"
+        class="bg-white hover:bg-white/80 lg:px-6 xl:px-6 2xl:px-9 3xl:px-10 lg:py-2 2xl:py-2.5 3xl:py-3 rounded transition cursor-pointer flex items-center justify-center cursor-pointer"
+        @click="playContent(movieId, contentType, $event)"
       >
         <svg fill="#000000" class="w-6 sm:w-7 mr-2" viewBox="0 0 512 512">
           <path
@@ -120,5 +121,73 @@ defineProps({
   trailerEnded: Boolean,
   isMuted: Boolean,
   contentRating: String,
+  movieId: String,
+  contentType: String,
 });
+
+function playContent(imdb_id, media_type, event) {
+
+  let base_url = 'https://proxy.garageband.rocks/embed';
+
+  let video_url = base_url + '/movie/' + imdb_id;
+  if (media_type === 'tv') {
+    video_url = base_url + '/tv/' + imdb_id;
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    window.open(video_url+'?autonext=1');
+  } else {
+    createLightbox(video_url+'?autonext=1');
+  }
+}
+
+const createLightbox = (iframeSrc) => {
+  // Create lightbox container
+  const lightbox = document.createElement('div');
+  Object.assign(lightbox.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: '9999',
+  });
+
+  // Create iframe
+  const iframe = document.createElement('iframe');
+  Object.assign(iframe.style, {
+    width: '90%',
+    height: '90%',
+    border: 'none',
+    borderRadius: '8px',
+  });
+  iframe.allowFullscreen = true;
+  iframe.src = iframeSrc;
+
+  // Append iframe to lightbox
+  lightbox.appendChild(iframe);
+
+  // Close lightbox when clicking outside iframe
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) {
+      lightbox.remove();
+    }
+  });
+
+  // Close lightbox when ESC is pressed
+  document.addEventListener('keyup', function (event) {
+    if (event.key === "Escape") {
+      lightbox.remove();
+    }
+  });
+
+  // Add lightbox to the body
+  document.body.appendChild(lightbox);
+}
+
+
 </script>

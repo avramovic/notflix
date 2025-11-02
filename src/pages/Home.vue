@@ -336,13 +336,13 @@ const fetchAllContent = async () => {
       });
     });
 
-    const allLogos = await Promise.all(logoPromises);
-    allLogos.forEach(({ gridId, itemId, logo }) => {
-      if (logo) {
-        const grid = contentGrids.value.find((g) => g.id === gridId);
-        if (grid) grid.logos[itemId] = logo;
-      }
-    });
+    // const allLogos = await Promise.all(logoPromises);
+    // allLogos.forEach(({ gridId, itemId, logo }) => {
+    //   if (logo) {
+    //     const grid = contentGrids.value.find((g) => g.id === gridId);
+    //     if (grid) grid.logos[itemId] = logo;
+    //   }
+    // });
 
     const moviesWithBackdrop = contentGrids.value[0].items.filter(
       (m) => m.backdrop_path
@@ -355,12 +355,12 @@ const fetchAllContent = async () => {
 
       const movieDetails = await fetchMovieDetails(featuredMovie.value.id);
 
-      [featuredLogo.value, featuredTrailerKey.value] = await Promise.all([
-        fetchMovieLogos(featuredMovie.value.id),
-        fetchMovieTrailers(featuredMovie.value.id).then(
-          (trailers) => trailers[0]?.key || null
-        ),
-      ]);
+      // [featuredLogo.value, featuredTrailerKey.value] = await Promise.all([
+      //   fetchMovieLogos(featuredMovie.value.id),
+      //   fetchMovieTrailers(featuredMovie.value.id).then(
+      //     (trailers) => trailers[0]?.key || null
+      //   ),
+      // ]);
       featuredMovie.value = { ...featuredMovie.value, ...movieDetails };
     }
   } catch (error) {

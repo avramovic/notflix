@@ -40,22 +40,6 @@
             >Movies</a
           >
         </li>
-        <li>
-          <a
-            href="#"
-            @click.prevent="router.push('/latest')"
-            class="hover:opacity-70 transition"
-            >New & Popular</a
-          >
-        </li>
-        <li>
-          <a
-            href="#"
-            @click.prevent="router.push('/my-list')"
-            class="hover:opacity-70 transition"
-            >My List</a
-          >
-        </li>
       </ul>
     </div>
 
@@ -91,6 +75,7 @@
 
       <div
         class="relative group"
+        style="display: none"
         @mouseenter="isGroupHovered = true"
         @mouseleave="isGroupHovered = false"
       >

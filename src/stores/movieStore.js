@@ -15,7 +15,7 @@ export const useMovieStore = defineStore("movie", {
 
       try {
         const response = await fetch(
-          `${this.baseUrl}/titles?type=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=DESC`
+          `${this.baseUrl}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&sortOrder=ASC&minAggregateRating=1.0`
         );
         const data = await response.json();
 
@@ -94,7 +94,9 @@ export const useMovieStore = defineStore("movie", {
         video: false,
         vote_average: title.rating?.aggregateRating ?? 0,
         vote_count: title.rating?.voteCount ?? 0,
-        cast: cast,
+        credits: {
+          cast: cast,
+        },
       };
     }
   },
