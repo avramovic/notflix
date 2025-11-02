@@ -5,7 +5,7 @@ export const useMovieStore = defineStore("movie", {
   state: () => ({
     genres: null,
     apiKey: import.meta.env.VITE_TMDB_API_KEY,
-    baseUrl: "http://gdevelop-utils.test/imdb",
+    baseUrl: "https://imdb.6683549.xyz",
     preloadedMovies: {},
   }),
 

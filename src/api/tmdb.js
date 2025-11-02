@@ -1,5 +1,5 @@
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = "http://gdevelop-utils.test/imdb";
+const BASE_URL = "https://imdb.6683549.xyz";
 const RATING_FILTER = "&certification_country=US&certification.lte=R";
 
 let preloadedMovies = {};
@@ -483,12 +483,6 @@ export async function fetchTopTenMovies() {
     let title = data.titles[i];
     titles.push(imdbToTmdb(title));
   }
-  console.log('top movies fetched:', titles);
-
-let tmp = filterByBackdropPath(titles)
-  .slice(0, 10)
-  .map((movie, index) => ({ ...movie, ranking: index + 1 }));
-  console.log('top ten movies fetched:', tmp);
 
   return filterByBackdropPath(titles)
     .slice(0, 10)
@@ -578,7 +572,7 @@ export async function fetchSimilarMovies(movieId) {
     genreParams.push("genres=" + encodeURIComponent(genre));
   }
 
-  const res2 = await fetch(`${BASE_URL}/titles/?types=MOVIE&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
+  const res2 = await fetch(`${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
   if (!res2.ok)
     throw new Error(`Failed to fetch similar TV shows for ID: ${movieId}`);
   const data = await res2.json();
@@ -599,7 +593,7 @@ export async function fetchSimilarTVShows(tvId) {
     genreParams.push("genres=" + encodeURIComponent(genre));
   }
 
-  const res = await fetch(`${BASE_URL}/titles/?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
+  const res = await fetch(`${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
   if (!res.ok)
     throw new Error(`Failed to fetch similar TV shows for ID: ${tvId}`);
   const data = await res.json();

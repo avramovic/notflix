@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const BASE_URL = "http://gdevelop-utils.test/imdb";
+const BASE_URL = "https://imdb.6683549.xyz";
 
 export const useTVStore = defineStore("tv", () => {
   const genres = ref(null);

@@ -60,6 +60,7 @@
           :logo-path="featuredLogo"
           :movie-id="featuredMovie.id"
           :genres="featuredMovie.genres"
+          :type="featuredMovie.media_type"
           content-type="movie"
           class="hidden lg:block"
           @showMoreInfo="openModalWithContent"

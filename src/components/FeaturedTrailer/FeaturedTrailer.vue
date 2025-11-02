@@ -80,7 +80,7 @@
           :is-muted="isMuted"
           :content-rating="contentRating"
           :movie-id="movieId"
-          :content-type="contentType"
+          :type="type"
           @toggle-mute="isMuted = !isMuted"
           @replay="replayTrailer"
           @show-more-info="moreInfoClick"
@@ -103,6 +103,7 @@ const props = defineProps({
   backdropPath: String,
   trailerKey: String,
   logoPath: String,
+  type: String,
   movieId: Number,
   genres: { type: Array, default: () => [] },
   contentType: {

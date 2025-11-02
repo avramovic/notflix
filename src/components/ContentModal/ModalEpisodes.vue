@@ -58,7 +58,7 @@ const props = defineProps({
 });
 
 const playEpisode = (episode, event) => {
-  let base_url = 'https://proxy.garageband.rocks/embed';
+  let base_url = 'https://vidsrc.6683549.xyz/embed';
 
   let video_url = base_url + '/tv/' + props.tvId + '/'+episode.season_number+'-'+episode.episode_number+'?autonext=1';
 

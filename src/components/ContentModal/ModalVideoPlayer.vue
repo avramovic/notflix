@@ -94,7 +94,7 @@ function selectRating(rating) {
 function playContent(title, event) {
   let imdb_id = title.id;
   let media_type = title.media_type;
-  let base_url = 'https://proxy.garageband.rocks/embed';
+  let base_url = 'https://vidsrc.6683549.xyz/embed';
 
   let video_url = base_url + '/movie/' + imdb_id;
   if (media_type === 'tv') {

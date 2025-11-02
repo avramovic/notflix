@@ -58,6 +58,7 @@
           :logo-path="featuredLogo"
           :movie-id="featuredTVShow.id"
           :genres="featuredTVShow.genres"
+          :type="featuredTVShow.media_type"
           content-type="tv"
           class="hidden lg:block"
           @showMoreInfo="openModal"
@@ -141,7 +142,7 @@ const gridConfig = [
   },
   {
     id: "topTenTV",
-    title: "Top 10 TV Shows in The U.S. Today",
+    title: "Top 10 TV Shows Today",
     component: TopTenContentGrid,
     contentType: "tv",
     fetcher: fetchTopTenTVShows,

@@ -5,7 +5,7 @@
     <div class="flex flex-row items-center gap-4">
       <button
         class="bg-white hover:bg-white/80 lg:px-6 xl:px-6 2xl:px-9 3xl:px-10 lg:py-2 2xl:py-2.5 3xl:py-3 rounded transition cursor-pointer flex items-center justify-center cursor-pointer"
-        @click="playContent(movieId, contentType, $event)"
+        @click="playContent(movieId, type, $event)"
       >
         <svg fill="#000000" class="w-6 sm:w-7 mr-2" viewBox="0 0 512 512">
           <path
@@ -123,11 +123,11 @@ defineProps({
   contentRating: String,
   movieId: String,
   contentType: String,
+  type: String,
 });
 
 function playContent(imdb_id, media_type, event) {
-
-  let base_url = 'https://proxy.garageband.rocks/embed';
+  let base_url = 'https://vidsrc.6683549.xyz/embed';
 
   let video_url = base_url + '/movie/' + imdb_id;
   if (media_type === 'tv') {

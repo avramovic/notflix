@@ -58,6 +58,7 @@
           :logo-path="featuredLogo"
           :movie-id="featuredMovie.id"
           :genres="featuredMovie.genres"
+          :type="featuredMovie.media_type"
           content-type="movie"
           class="hidden lg:block"
           @showMoreInfo="openModal"
@@ -147,7 +148,7 @@ const gridConfig = [
   },
   {
     id: "topTenMovies",
-    title: "Top 10 Movies in The U.S. Today",
+    title: "Top 10 Movies Today",
     component: TopTenContentGrid,
     contentType: "movie",
     fetcher: fetchTopTenMovies,
