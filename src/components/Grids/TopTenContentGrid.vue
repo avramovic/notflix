@@ -165,8 +165,8 @@ const props = defineProps({
 
 const defaultTitle = computed(() => {
   return props.contentType === "movie"
-    ? "Top 10 Movies in USA Today"
-    : "Top 10 TV Shows in USA Today";
+    ? "Top 10 Movies Today"
+    : "Top 10 TV Shows Today";
 });
 
 const computedTitle = computed(() => {

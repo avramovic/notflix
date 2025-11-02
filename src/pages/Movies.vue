@@ -155,7 +155,7 @@ const gridConfig = [
   },
   {
     id: "topTen",
-    title: "Top 10 Movies in USA Today",
+    title: "Top 10 Movies Today",
     component: TopTenContentGrid,
     contentType: "movie",
     fetcher: fetchTopTenMovies,
