@@ -573,8 +573,11 @@ export async function fetchSimilarMovies(movieId) {
   const title = await fetchMovieDetails(movieId);
 
   let genreParams = [];
+  let i = 0;
   for (const genre of title.genre_ids ?? []) {
+    if (i >= 3) break; // Limit to first 3 genres
     genreParams.push("genres=" + encodeURIComponent(genre));
+    i++;
   }
 
   const res2 = await fetch(`${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
@@ -594,8 +597,11 @@ export async function fetchSimilarTVShows(tvId) {
   const title = await fetchTVShowDetails(tvId);
 
   let genreParams = [];
+  let i = 0;
   for (const genre of title.genre_ids ?? []) {
+    if (i >= 3) break; // Limit to first 3 genres
     genreParams.push("genres=" + encodeURIComponent(genre));
+    i++;
   }
 
   const res = await fetch(`${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
