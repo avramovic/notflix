@@ -194,9 +194,9 @@ const isSearchOpen = ref(false);
 const searchQuery = ref("");
 const searchInput = ref(null);
 
-const debounceSearch = useDebounce(searchQuery, 500);
+const debounceSearch = useDebounce(searchQuery, 1000);
 watch(debounceSearch, (query) => {
-  if (query && query.length >= 2) {
+  if (query && query.length >= 3) {
     router.push({ name: "Search", query: { q: query } });
   }
 });
