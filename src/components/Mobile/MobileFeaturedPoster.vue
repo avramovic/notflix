@@ -91,6 +91,7 @@
       <div class="flex gap-3 justify-center">
         <button
           class="bg-white text-black flex px-8 sm:px-12 py-1 rounded font-semibold items-center justify-center cursor-pointer"
+          @click="playContent(movie, $event)"
         >
           <svg
             fill="#000000"
@@ -109,7 +110,7 @@
           Play
         </button>
         <button
-          class="bg-gray-600/80 text-white py-2 px-8 rounded font-semibold flex items-center justify-center cursor-pointer"
+          class="hidden bg-gray-600/80 text-white py-2 px-8 rounded font-semibold flex items-center justify-center cursor-pointer"
           @click.stop="toggleMyList"
         >
           <svg
@@ -392,6 +393,72 @@ watch(
   },
   { immediate: true }
 );
+
+function playContent(title, event) {
+  let imdb_id = title.id;
+  let media_type = title.media_type;
+  let base_url = 'https://vidsrc.6683549.xyz/embed';
+
+  let video_url = base_url + '/movie/' + imdb_id;
+  if (media_type === 'tv') {
+    video_url = base_url + '/tv/' + imdb_id + '?autonext=1';
+  }
+
+  if (event.ctrlKey || event.metaKey) {
+    window.open(video_url);
+  } else {
+    createLightbox(video_url);
+  }
+}
+
+function createLightbox(iframeSrc) {
+  // Create lightbox container
+  const lightbox = document.createElement('div');
+  Object.assign(lightbox.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: '9999',
+  });
+
+  // Create iframe
+  const iframe = document.createElement('iframe');
+  Object.assign(iframe.style, {
+    width: '90%',
+    height: '90%',
+    border: 'none',
+    borderRadius: '8px',
+  });
+  iframe.allowFullscreen = true;
+  iframe.src = iframeSrc;
+
+  // Append iframe to lightbox
+  lightbox.appendChild(iframe);
+
+  // Close lightbox when clicking outside iframe
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) {
+      lightbox.remove();
+    }
+  });
+
+  // Close lightbox when ESC is pressed
+  document.addEventListener('keyup', function (event) {
+    if (event.key === "Escape") {
+      lightbox.remove();
+    }
+  });
+
+  // Add lightbox to the body
+  document.body.appendChild(lightbox);
+}
+
 </script>
 
 <style scoped>

@@ -44,7 +44,8 @@
       <div
         v-for="episode in episodes"
         :key="episode.id"
-        class="flex bg-netflix-bg-gray rounded-md overflow-hidden"
+        class="flex bg-netflix-bg-gray rounded-md overflow-hidden cursor-pointer"
+        @click="playEpisode(episode, $event)"
       >
         <div class="w-1/3 relative">
           <img
@@ -118,14 +119,37 @@ async function fetchEpisodes() {
   isLoadingEpisodes.value = true;
   episodes.value = [];
   try {
-    const url = `https://api.themoviedb.org/3/tv/${props.showId}/season/${
-      selectedSeason.value
-    }?api_key=${import.meta.env.VITE_TMDB_API_KEY}&language=en-US`;
+    const url = `https://imdb.6683549.xyz/titles/${props.showId}/episodes?season=${selectedSeason.value}`;
     const response = await fetch(url);
     if (!response.ok)
       throw new Error(`Failed to fetch episodes: ${response.status}`);
     const data = await response.json();
-    if (data.episodes?.length) episodes.value = data.episodes;
+
+    let eps = [];
+
+    for (const episode of data.episodes) {
+      let air_date = null;
+      if (episode.releaseDate) {
+        const { year, month, day } = episode.releaseDate;
+        const d = new Date(year, month - 1, day);
+        air_date = isNaN(d) ? null : d.toISOString().split('T')[0];
+      }
+      eps.push({
+        air_date: air_date,
+        episode_number: episode.episodeNumber,
+        id: episode.id,
+        name: episode.title || `Episode ${episode.episodeNumber}`,
+        overview: episode.plot || null,
+        production_code: null,
+        season_number: parseInt(episode.season),
+        show_id: props.showId,
+        still_path: episode.primaryImage?.url ?? null,
+        vote_average: episode.rating?.aggregateRating ?? 0,
+        vote_count: episode.rating?.voteCount ?? 0,
+      });
+    }
+
+    if (eps.length > 0) episodes.value = eps;
   } catch (error) {
     console.error("Error fetching episodes:", error);
   } finally {
@@ -147,6 +171,66 @@ const handleClickOutside = (e) => {
     isSeasonDropdownOpen.value = false;
   }
 };
+
+const playEpisode = (episode, event) => {
+  let base_url = 'https://vidsrc.6683549.xyz/embed';
+
+  let video_url = base_url + '/tv/' + props.showId + '/'+episode.season_number+'-'+episode.episode_number+'?autonext=1';
+
+  if (event.ctrlKey || event.metaKey) {
+    window.open(video_url);
+  } else {
+    createLightbox(video_url);
+  }
+}
+
+function createLightbox(iframeSrc) {
+  // Create lightbox container
+  const lightbox = document.createElement('div');
+  Object.assign(lightbox.style, {
+    position: 'fixed',
+    top: '0',
+    left: '0',
+    width: '100vw',
+    height: '100vh',
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: '9999',
+  });
+
+  // Create iframe
+  const iframe = document.createElement('iframe');
+  Object.assign(iframe.style, {
+    width: '90%',
+    height: '90%',
+    border: 'none',
+    borderRadius: '8px',
+  });
+  iframe.allowFullscreen = true;
+  iframe.src = iframeSrc;
+
+  // Append iframe to lightbox
+  lightbox.appendChild(iframe);
+
+  // Close lightbox when clicking outside iframe
+  lightbox.addEventListener('click', (event) => {
+    if (event.target === lightbox) {
+      lightbox.remove();
+    }
+  });
+
+  // Close lightbox when ESC is pressed
+  document.addEventListener('keyup', function (event) {
+    if (event.key === "Escape") {
+      lightbox.remove();
+    }
+  });
+
+  // Add lightbox to the body
+  document.body.appendChild(lightbox);
+}
 
 onMounted(() => {
   if (props.seasons && props.seasons.length > 0) {

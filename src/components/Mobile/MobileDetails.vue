@@ -45,11 +45,14 @@
       <div class="px-4 py-4 relative">
         <MobileDetailsInfo
           :content="content"
-          :cast="cast"
+          :cast="content.credits.cast"
+          :genres="content.genre_ids"
           :content-type="contentType"
         />
 
-        <MobileDetailsActions />
+        <MobileDetailsActions
+          :content="content"
+        />
 
         <MobileDetailsTabs
           v-if="contentType === 'tv' && content.seasons"
@@ -70,7 +73,7 @@
 
     <div v-else class="pt-20 text-center">Loading...</div>
 
-    <MobileDetailsFooter :content-id="contentId" />
+<!--    <MobileDetailsFooter :content-id="contentId" />-->
   </div>
 </template>
 

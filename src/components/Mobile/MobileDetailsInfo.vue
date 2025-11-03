@@ -65,7 +65,7 @@ const seasonInfo = computed(() => {
 const ageRating = computed(() => (props.content.adult ? "18+" : "PG-13"));
 const genres = computed(() => props.content.genres || []);
 const genreList = computed(() =>
-  genres.value.map((genre) => genre.name).join(", ")
+  genres.value.map((genre) => genre).join(", ")
 );
 const castList = computed(() =>
   props.cast
