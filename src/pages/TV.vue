@@ -28,7 +28,7 @@
           Movies
         </button>
         <button
-          class="bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full"
+          class="hidden bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full"
           @click="router.push('/my-list')"
         >
           My List

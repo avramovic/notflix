@@ -28,7 +28,7 @@
           Movies
         </button>
         <button
-          class="bg-transparent border-1 border-white/60 text-white/60 px-4 py-1.5 rounded-full cursor-pointer"
+          class="hidden bg-transparent border-1 border-white/60 text-white/60 px-4 py-1.5 rounded-full cursor-pointer"
         >
           My List
         </button>
