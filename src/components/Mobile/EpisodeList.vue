@@ -135,7 +135,7 @@ async function fetchEpisodes() {
       if (episode.releaseDate) {
         const { year, month, day } = episode.releaseDate;
         const d = new Date(year, month - 1, day);
-        air_date = isNaN(d) ? null : d.toDateString();
+        air_date = isNaN(d) ? 'unknown' : d.toDateString();
       }
       eps.push({
         air_date: air_date,
