@@ -406,11 +406,11 @@ export async function fetchTVShowSeasonDetails(tvId, seasonNumber) {
     let episodes = [];
 
     for (const episode of data.episodes) {
-      let air_date = null;
+      let air_date = 'unknown';
       if (episode.releaseDate) {
         const { year, month, day } = episode.releaseDate;
         const d = new Date(year, month - 1, day);
-        air_date = isNaN(d) ? null : d.toISOString().split('T')[0];
+        air_date = isNaN(d) ? null : d.toDateString();
       }
       episodes.push({
         air_date: air_date,

@@ -82,6 +82,9 @@
           <p class="text-sm text-white/80 mt-1 line-clamp-2">
             {{ episode.overview || "No description available." }}
           </p>
+          <p class="text-xs text-white/80 mt-1 line-clamp-2">
+            Air date: {{ episode.air_date }}
+          </p>
         </div>
       </div>
     </div>
@@ -128,11 +131,11 @@ async function fetchEpisodes() {
     let eps = [];
 
     for (const episode of data.episodes) {
-      let air_date = null;
+      let air_date = 'unknown';
       if (episode.releaseDate) {
         const { year, month, day } = episode.releaseDate;
         const d = new Date(year, month - 1, day);
-        air_date = isNaN(d) ? null : d.toISOString().split('T')[0];
+        air_date = isNaN(d) ? null : d.toDateString();
       }
       eps.push({
         air_date: air_date,

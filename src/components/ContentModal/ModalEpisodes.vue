@@ -42,6 +42,9 @@
           <p class="text-sm text-gray-300 line-clamp-2">
             {{ episode.overview }}
           </p>
+          <p class="text-xs text-gray-500 line-clamp-2 mt-2">
+            Air date: {{ episode.air_date }}
+          </p>
         </div>
       </div>
     </div>
