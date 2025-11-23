@@ -580,7 +580,8 @@ export async function fetchSimilarMovies(movieId) {
     i++;
   }
 
-  const res2 = await fetch(`${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
+  // const res2 = await fetch(`${BASE_URL}/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
+  const res2 = await fetch(`https://api.imdbapi.dev/titles?types=MOVIE&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
   if (!res2.ok)
     throw new Error(`Failed to fetch similar TV shows for ID: ${movieId}`);
   const data = await res2.json();
@@ -604,7 +605,8 @@ export async function fetchSimilarTVShows(tvId) {
     i++;
   }
 
-  const res = await fetch(`${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
+  // const res = await fetch(`${BASE_URL}/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
+  const res = await fetch(`https://api.imdbapi.dev/titles?types=TV_SERIES&sortBy=SORT_BY_POPULARITY&minAggregateRating=1.0&sortOrder=ASC&${genreParams.join('&')}`);
   if (!res.ok)
     throw new Error(`Failed to fetch similar TV shows for ID: ${tvId}`);
   const data = await res.json();
