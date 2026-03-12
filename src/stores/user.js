@@ -1,5 +1,6 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { fetchMovieDetails, fetchTVShowDetails } from "@/api/tmdb";
 
 export const useUserStore = defineStore("user", () => {
   const STORAGE_KEYS = {
@@ -206,6 +207,31 @@ export const useUserStore = defineStore("user", () => {
     };
   }
 
+  async function enrichListItem(item, contentType) {
+    const normalizedItem = normalizeListItem(item, contentType);
+
+    if (normalizedItem.overview) {
+      return normalizedItem;
+    }
+
+    try {
+      const fetchDetails =
+        normalizedItem.media_type === "tv" ? fetchTVShowDetails : fetchMovieDetails;
+      const details = await fetchDetails(normalizedItem.id);
+
+      return {
+        ...normalizedItem,
+        overview: details?.overview || normalizedItem.overview,
+      };
+    } catch (error) {
+      console.error(
+        `Failed to enrich favorite item ${normalizedItem.media_type}:${normalizedItem.id}:`,
+        error
+      );
+      return normalizedItem;
+    }
+  }
+
   function normalizeStoredLists(lists) {
     if (!lists || typeof lists !== "object") {
       return {};
@@ -248,7 +274,7 @@ export const useUserStore = defineStore("user", () => {
       await removeMatchingListItems(item, normalizedContentType);
       console.log("Removed from My List:", item.title || item.name);
     } else {
-      const itemToAdd = normalizeListItem(item, normalizedContentType);
+      const itemToAdd = await enrichListItem(item, normalizedContentType);
       await addToMyList(itemToAdd);
       console.log("Added to My List:", item.title || item.name);
     }
@@ -429,7 +455,7 @@ export const useUserStore = defineStore("user", () => {
 
     const profileId = currentProfile.value.id;
     const normalizedItem = {
-      ...normalizeListItem(item, item.media_type || item.contentType),
+      ...(await enrichListItem(item, item.media_type || item.contentType)),
       addedAt: item.addedAt || new Date().toISOString(),
     };
 
