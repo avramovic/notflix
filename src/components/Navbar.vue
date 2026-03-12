@@ -11,7 +11,7 @@
           src="/NotflixLogo.png"
           alt="Netflix Logo"
           class="h-24 md:h-30 -my-24 cursor-pointer"
-          @click="router.push('/browse')"
+          @click="router.push('/')"
         />
         <span class="text-xs font-bold hidden sm:inline">(Not Netflix)</span>
       </div>
@@ -19,7 +19,7 @@
         <li>
           <a
             href="#"
-            @click.prevent="router.push('/browse')"
+            @click.prevent="router.push('/')"
             class="hover:opacity-70 transition"
             >Home</a
           >
@@ -227,7 +227,7 @@ const switchProfile = async (profile) => {
   if (userStore.currentProfile?.id === profile.id) return;
   try {
     await userStore.setActiveProfile(profile);
-    await router.push("/browse");
+    await router.push("/");
   } catch (err) {
     console.error("Failed to switch profile:", err);
   }

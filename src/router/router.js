@@ -14,8 +14,11 @@ import Search from "../pages/Search.vue";
 const routes = [
   {
     path: "/",
-    name: "Root",
+    name: "Home",
     component: Home,
+    meta: {
+      requiresAuth: true,
+    },
   },
   {
     path: "/signup",
@@ -36,11 +39,7 @@ const routes = [
   },
   {
     path: "/browse",
-    name: "Home",
-    component: Home,
-    meta: {
-      requiresAuth: true,
-    },
+    redirect: "/",
   },
   {
     path: "/tv",
@@ -156,7 +155,7 @@ router.beforeEach(async (to, from, next) => {
   if (requiresAuth && !isAuthenticated) {
     next("/login");
   } else if (requiresGuest && isAuthenticated) {
-    next("/browse");
+    next("/");
   } else {
     next();
   }

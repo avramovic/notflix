@@ -242,7 +242,7 @@ async function handleProfileClick(profile) {
 
   try {
     await userStore.setActiveProfile(profile);
-    router.push("/browse");
+    router.push("/");
   } catch (error) {
     console.error("Error selecting profile:", error);
   }

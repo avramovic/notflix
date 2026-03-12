@@ -25,7 +25,7 @@
           Tap the heart on movies and TV shows to save them here.
         </p>
         <router-link
-          to="/browse"
+          to="/"
           class="bg-netflix-bg-gray text-white py-3 px-6 border-1 border-netflix-gray-50 rounded-md font-medium hover:bg-netflix-gray-50/10 transition"
         >
           Browse content
