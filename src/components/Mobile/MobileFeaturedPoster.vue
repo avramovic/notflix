@@ -110,62 +110,29 @@
           Play
         </button>
         <button
-          class="hidden bg-gray-600/80 text-white py-2 px-8 rounded font-semibold flex items-center justify-center cursor-pointer"
+          :class="[
+            'py-2 px-8 rounded font-semibold flex items-center justify-center cursor-pointer transition-colors border',
+            isInMyList
+              ? 'bg-red-600/20 text-red-500 border-red-500'
+              : 'bg-gray-600/80 text-white border-transparent',
+          ]"
           @click.stop="toggleMyList"
         >
           <svg
-            v-if="isInMyList"
             viewBox="0 0 24 24"
-            fill="none"
+            :fill="isInMyList ? 'currentColor' : 'none'"
             xmlns="http://www.w3.org/2000/svg"
             class="w-4 h-4 mr-2 mt-0.5"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
           >
             <path
-              d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"
-              fill="#ffffff"
+              d="M12 20.5s-7-4.35-7-10.13C5 7.41 7.24 5.5 9.86 5.5c1.45 0 2.83.67 3.64 1.73.81-1.06 2.19-1.73 3.64-1.73C19.76 5.5 22 7.41 22 10.37 22 16.15 15 20.5 15 20.5h-3z"
             />
           </svg>
-          <svg
-            v-else
-            viewBox="-0.5 0 21 21"
-            version="1.1"
-            xmlns="http://www.w3.org/2000/svg"
-            xmlns:xlink="http://www.w3.org/1999/xlink"
-            fill="#000000"
-            class="w-4 h-4 mr-2 mt-0.5"
-          >
-            <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
-            <g
-              id="SVGRepo_tracerCarrier"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            ></g>
-            <g id="SVGRepo_iconCarrier">
-              <title>plus [#1512]</title>
-              <defs></defs>
-              <g
-                id="Page-1"
-                stroke="none"
-                stroke-width="1"
-                fill="none"
-                fill-rule="evenodd"
-              >
-                <g
-                  id="Dribbble-Light-Preview"
-                  transform="translate(-379.000000, -240.000000)"
-                  fill="#ffffff"
-                >
-                  <g id="icons" transform="translate(56.000000, 160.000000)">
-                    <polygon
-                      id="plus-[#1512]"
-                      points="344 89 344 91 334.55 91 334.55 100 332.45 100 332.45 91 323 91 323 89 332.45 89 332.45 80 334.55 80 334.55 89"
-                    ></polygon>
-                  </g>
-                </g>
-              </g>
-            </g>
-          </svg>
-          {{ isInMyList ? "Remove" : "My List" }}
+          {{ isInMyList ? "Favorited" : "Favorite" }}
         </button>
       </div>
     </div>
@@ -333,8 +300,8 @@ function retryLoading() {
 }
 
 const isInMyList = computed(() => {
-  if (!userStore.currentMyList || !props.movie?.id) return false;
-  return userStore.currentMyList.some((item) => item.id === props.movie.id);
+  if (!props.movie?.id) return false;
+  return userStore.isItemInMyList(props.movie, props.contentType || "movie");
 });
 
 async function toggleMyList(event) {
@@ -342,30 +309,7 @@ async function toggleMyList(event) {
   if (!props.movie?.id) return;
 
   try {
-    if (isInMyList.value) {
-      const myListItem = userStore.currentMyList.find(
-        (item) => item.id === props.movie.id
-      );
-      if (myListItem && myListItem.docId) {
-        await userStore.removeFromMyList(myListItem.docId);
-      } else {
-        console.error("Could not find document ID for item in My List");
-      }
-    } else {
-      const contentToAdd = {
-        id: props.movie.id,
-        title: props.movie.title || props.movie.name || "Unknown Title",
-        name: props.movie.name || props.movie.title || "Unknown Name",
-        poster_path: props.movie.poster_path || null,
-        backdrop_path: props.movie.backdrop_path || null,
-        media_type: props.contentType || "movie",
-        overview: props.movie.overview || "",
-        vote_average: props.movie.vote_average || 0,
-        release_date: props.movie.release_date,
-        first_air_date: props.movie.first_air_date,
-      };
-      await userStore.addToMyList(contentToAdd);
-    }
+    await userStore.toggleListItem(props.movie, props.contentType || "movie");
   } catch (error) {
     console.error("Error toggling My List:", error);
   }

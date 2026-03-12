@@ -47,6 +47,31 @@
           </svg>
           <span class="text-xl font-semibold">Play</span>
         </button>
+
+        <button
+          :class="[
+            'px-4 py-2 rounded flex items-center gap-2 font-semibold cursor-pointer border transition-colors',
+            isInMyList
+              ? 'bg-red-600/20 text-red-500 border-red-500 hover:bg-red-600/30'
+              : 'bg-white/10 text-white border-white/20 hover:bg-white/20',
+          ]"
+          @click="emit('toggleMyList')"
+        >
+          <svg
+            viewBox="0 0 24 24"
+            class="w-5 h-5"
+            :fill="isInMyList ? 'currentColor' : 'none'"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M12 20.5s-7-4.35-7-10.13C5 7.41 7.24 5.5 9.86 5.5c1.45 0 2.83.67 3.64 1.73.81-1.06 2.19-1.73 3.64-1.73C19.76 5.5 22 7.41 22 10.37 22 16.15 15 20.5 15 20.5h-3z"
+            />
+          </svg>
+          <span>{{ isInMyList ? "Favorited" : "Favorite" }}</span>
+        </button>
       </div>
     </div>
   </div>

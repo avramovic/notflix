@@ -13,10 +13,13 @@
         </h2>
 
         <div class="flex items-center space-x-8">
-          <div class="relative group">
+          <div
+            class="relative group cursor-pointer"
+            @click="showAvatarModal = true"
+          >
             <img
               :src="newProfile.avatar || '/avatars/avatar1.png'"
-              class="w-24 h-24 border-2 border-transparent rounded ml-4"
+              class="w-24 h-24 border-2 border-transparent group-hover:border-white rounded ml-4"
               alt="Current Avatar"
             />
           </div>
@@ -69,16 +72,15 @@
 
 <script setup>
 import { ref, onMounted } from "vue";
-import { useUserStore } from "@/stores/user";
 import SelectAvatarModal from "./SelectAvatarModal.vue";
 
 const emit = defineEmits(["close", "save"]);
-const userStore = useUserStore();
 
 const newProfile = ref({
   name: "",
   avatar: "",
 });
+const showAvatarModal = ref(false);
 
 onMounted(async () => {
   const avatars = await import("virtual:avatars").then((m) => m.default);
@@ -96,26 +98,16 @@ function selectAvatar(avatar) {
 
 function createProfile() {
   if (newProfile.value.name && newProfile.value.avatar) {
-    userStore.addProfile({
+    emit("save", {
       name: newProfile.value.name,
       avatar: newProfile.value.avatar,
+      settings: {
+        autoplay: true,
+        maturityLevel: "all",
+      },
     });
     close();
   }
-}
-
-function saveProfile() {
-  const profile = {
-    name: profileName.value,
-    avatar: selectedAvatar.value,
-    settings: {
-      autoplay: true,
-      maturityLevel: "all",
-    },
-    createdAt: new Date(),
-  };
-
-  emit("save", profile);
 }
 
 function close() {

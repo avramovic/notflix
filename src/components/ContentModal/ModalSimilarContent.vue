@@ -55,36 +55,27 @@
               </div>
               <button
                 @click.stop="toggleInList(item)"
-                class="border bg-transparent border-gray-400/70 border-2 hover:border-white hover:bg-white/25 text-white rounded-full p-1.5 sm:p-2 transition-colors cursor-pointer"
+                :class="[
+                  'border border-2 rounded-full p-1.5 sm:p-2 transition-colors cursor-pointer',
+                  isItemInList(item)
+                    ? 'bg-red-600/20 border-red-500 text-red-500 hover:bg-red-600/30'
+                    : 'bg-transparent border-gray-400/70 text-white hover:border-white hover:bg-white/25',
+                ]"
                 :title="
-                  isItemInList(item) ? 'Remove from My List' : 'Add to My List'
+                  isItemInList(item) ? 'Remove from favorites' : 'Add to favorites'
                 "
               >
                 <svg
-                  v-if="!isItemInList(item)"
-                  viewBox="0 0 22 22"
+                  viewBox="0 0 24 24"
                   class="w-4 h-4 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5"
-                  fill="none"
-                  stroke="#FFFFFF"
+                  :fill="isItemInList(item) ? 'currentColor' : 'none'"
+                  stroke="currentColor"
                   stroke-width="2"
                   stroke-linecap="round"
                   stroke-linejoin="round"
                 >
-                  <path d="M11 5V17M5 11H17" />
-                  {/* A simpler, centered plus path */}
-                </svg>
-                <svg
-                  v-else
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  class="w-4 h-4 lg:w-4 lg:h-4 2xl:w-5 2xl:h-5"
-                >
                   <path
-                    d="M5 12L10 17L20 7"
-                    stroke="#ffffff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    d="M12 20.5s-7-4.35-7-10.13C5 7.41 7.24 5.5 9.86 5.5c1.45 0 2.83.67 3.64 1.73.81-1.06 2.19-1.73 3.64-1.73C19.76 5.5 22 7.41 22 10.37 22 16.15 15 20.5 15 20.5h-3z"
                   />
                 </svg>
               </button>

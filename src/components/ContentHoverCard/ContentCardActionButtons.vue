@@ -17,6 +17,32 @@
       </svg>
     </button>
 
+    <button
+      @click="$emit('toggleMyList')"
+      :class="[
+        'border border-2 rounded-full p-2 transition-colors cursor-pointer',
+        isInMyList
+          ? 'bg-red-600/20 border-red-500 text-red-500 hover:bg-red-600/30'
+          : 'bg-white/8 border-gray-400 text-white hover:border-white',
+      ]"
+      :aria-label="isInMyList ? 'Remove from favorites' : 'Add to favorites'"
+      :title="isInMyList ? 'Remove from favorites' : 'Add to favorites'"
+    >
+      <svg
+        viewBox="0 0 24 24"
+        class="h-8 w-8"
+        :fill="isInMyList ? 'currentColor' : 'none'"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <path
+          d="M12 20.5s-7-4.35-7-10.13C5 7.41 7.24 5.5 9.86 5.5c1.45 0 2.83.67 3.64 1.73.81-1.06 2.19-1.73 3.64-1.73C19.76 5.5 22 7.41 22 10.37 22 16.15 15 20.5 15 20.5h-3z"
+        />
+      </svg>
+    </button>
+
     <div class="ml-auto">
       <button
         @click="$emit('expand')"

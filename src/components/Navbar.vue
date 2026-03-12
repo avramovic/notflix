@@ -40,6 +40,14 @@
             >Movies</a
           >
         </li>
+        <li>
+          <a
+            href="#"
+            @click.prevent="goToFavorites"
+            class="hover:opacity-70 transition"
+            >Favorites</a
+          >
+        </li>
       </ul>
     </div>
 
@@ -75,7 +83,6 @@
 
       <div
         class="relative group"
-        style="display: none"
         @mouseenter="isGroupHovered = true"
         @mouseleave="isGroupHovered = false"
       >
@@ -153,23 +160,10 @@
             <li>
               <a
                 href="#"
-                @click.prevent="goToEditCurrentProfile"
+                @click.prevent="goToFavorites"
                 class="block px-4 py-2 hover:bg-neutral-800"
-                >Account</a
+                >Favorites</a
               >
-            </li>
-            <li>
-              <a href="#" class="block px-4 py-2 hover:bg-neutral-800"
-                >Help Center</a
-              >
-            </li>
-            <li>
-              <button
-                @click="handleSignOut"
-                class="w-full text-left px-4 py-2 hover:bg-neutral-800 cursor-pointer"
-              >
-                Sign Out
-              </button>
             </li>
           </ul>
         </div>
@@ -229,22 +223,23 @@ const handleProfileClick = () => {
   }
 };
 
-const handleSignOut = async () => {
-  try {
-    await userStore.logout();
-    router.push("/login");
-  } catch (err) {
-    console.error("Failed to sign out:", err);
-  }
-};
-
 const switchProfile = async (profile) => {
   if (userStore.currentProfile?.id === profile.id) return;
   try {
     await userStore.setActiveProfile(profile);
-    window.location.href = "/browse";
+    await router.push("/browse");
   } catch (err) {
     console.error("Failed to switch profile:", err);
+  }
+};
+
+const goToFavorites = async () => {
+  try {
+    await router.push("/favorites");
+  } catch (err) {
+    if (err?.name !== "NavigationDuplicated") {
+      console.error("Navigation to favorites failed:", err);
+    }
   }
 };
 
@@ -264,26 +259,6 @@ async function goToManageProfiles() {
     manageButton.click();
   } else {
     console.warn("Could not find manage profiles button after navigation.");
-  }
-}
-
-async function goToEditCurrentProfile() {
-  const profileId = userStore.currentProfile?.id;
-  if (!profileId) {
-    console.warn("No current profile selected to edit.");
-
-    return goToManageProfiles();
-  }
-
-  try {
-    await router.push({
-      path: "/select-profile",
-      query: { manage: "true", editProfile: profileId },
-    });
-  } catch (error) {
-    if (error.name !== "NavigationDuplicated") {
-      console.error("Error navigating to edit profile:", error);
-    }
   }
 }
 

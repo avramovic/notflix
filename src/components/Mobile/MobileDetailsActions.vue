@@ -17,30 +17,51 @@
       Play
     </button>
     <button
-      class="hidden w-full bg-netflix-gray-150 text-white py-3 rounded-md flex items-center justify-center font-semibold"
+      :class="[
+        'w-full py-3 rounded-md flex items-center justify-center font-semibold cursor-pointer transition-colors',
+        isFavorite
+          ? 'bg-red-600/20 text-red-500 border border-red-500'
+          : 'bg-netflix-gray-150 text-white border border-transparent',
+      ]"
+      @click="toggleFavorite"
     >
       <svg
-        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
         class="h-5 w-5 mr-2"
-        viewBox="0 0 20 20"
-        fill="currentColor"
+        :fill="isFavorite ? 'currentColor' : 'none'"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
       >
         <path
-          fill-rule="evenodd"
-          d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z"
-          clip-rule="evenodd"
+          d="M12 20.5s-7-4.35-7-10.13C5 7.41 7.24 5.5 9.86 5.5c1.45 0 2.83.67 3.64 1.73.81-1.06 2.19-1.73 3.64-1.73C19.76 5.5 22 7.41 22 10.37 22 16.15 15 20.5 15 20.5h-3z"
         />
       </svg>
-      Add to List
+      {{ isFavorite ? "Favorited" : "Favorite" }}
     </button>
   </div>
 </template>
 
 <script setup>
+import { computed } from "vue";
+import { useUserStore } from "@/stores/user";
 
 const props = defineProps({
   content: { type: Object, required: true },
 });
+
+const userStore = useUserStore();
+const getMediaType = (item) =>
+  item.media_type || (item.first_air_date ? "tv" : "movie");
+
+const isFavorite = computed(() =>
+  userStore.isItemInMyList(props.content, getMediaType(props.content))
+);
+
+function toggleFavorite() {
+  userStore.toggleListItem(props.content, getMediaType(props.content));
+}
 
 function playContent(title, event) {
   let imdb_id = title.id;

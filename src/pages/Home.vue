@@ -28,10 +28,10 @@
           Movies
         </button>
         <button
-          class="hidden bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full"
-          @click="router.push('/my-list')"
+          class="bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full"
+          @click="router.push('/favorites')"
         >
-          My List
+          Favorites
         </button>
       </div>
 
@@ -237,11 +237,7 @@ const openModalFromGrid = (payload) => {
 };
 
 const initializeUserProfile = () => {
-  // Ensure profiles are actually available in the store before proceeding
   if (!userStore.profilesLoaded || userStore.profiles.length === 0) {
-    // If no profiles are loaded or the list is empty,
-    // and there's no current profile, there's nothing to initialize yet.
-    // setActiveProfile in userStore handles setting currentProfile to null if needed.
     if (!userStore.currentProfile) {
       console.warn(
         "initializeUserProfile: Profiles not loaded or empty, and no current profile. Skipping initialization."
@@ -251,19 +247,13 @@ const initializeUserProfile = () => {
   }
 
   const profileIdFromUrl = route.query.profile;
-  const savedProfileId = localStorage.getItem(
-    "netflix_clone_active_profile_id"
-  );
-  let targetProfileId = profileIdFromUrl || savedProfileId;
+  let targetProfileId = profileIdFromUrl;
   let profileToSet = null;
 
   if (targetProfileId) {
     profileToSet = userStore.profiles.find((p) => p.id === targetProfileId);
   }
 
-  // If targetProfileId didn't yield a profile (e.g., invalid ID)
-  // OR if there was no targetProfileId but we have profiles and no current one,
-  // default to the first profile.
   if (
     !profileToSet &&
     userStore.profiles.length > 0 &&
@@ -285,13 +275,11 @@ const initializeUserProfile = () => {
     !userStore.currentProfile &&
     userStore.profiles.length > 0
   ) {
-    // Fallback if no target ID and no current profile, but profiles exist
     userStore.setActiveProfile(userStore.profiles[0]);
   } else if (targetProfileId && !profileToSet) {
     console.warn(
       `initializeUserProfile: Profile with ID "${targetProfileId}" not found. Defaulting if possible.`
     );
-    // If a specific profile was requested but not found, try to default if no current profile.
     if (!userStore.currentProfile && userStore.profiles.length > 0) {
       userStore.setActiveProfile(userStore.profiles[0]);
     }

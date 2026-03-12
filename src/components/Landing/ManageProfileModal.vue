@@ -91,11 +91,6 @@ const props = defineProps({
   },
 });
 
-const avatars = Array.from(
-  { length: 9 },
-  (_, i) => `/avatars/avatar${i + 1}.png`
-);
-
 const newProfile = ref({
   name: "",
   avatar: "",

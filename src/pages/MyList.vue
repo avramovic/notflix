@@ -3,7 +3,7 @@
     <Navbar />
 
     <div class="container mx-auto px-4 mt-8 mb-6">
-      <h1 class="text-3xl font-bold">My List</h1>
+      <h1 class="text-3xl font-bold">Favorites</h1>
     </div>
 
     <div class="container mx-auto px-4">
@@ -20,9 +20,9 @@
         "
         class="py-16 text-center"
       >
-        <h2 class="text-2xl font-semibold mb-6">Your list is empty</h2>
+        <h2 class="text-2xl font-semibold mb-6">Your favorites are empty</h2>
         <p class="text-netflix-gray-25 mb-12">
-          Add movies and TV shows to your list to watch them later.
+          Tap the heart on movies and TV shows to save them here.
         </p>
         <router-link
           to="/browse"
@@ -324,14 +324,6 @@ onMounted(async () => {
       return;
     }
 
-    if (typeof userStore.fetchMyList === "function") {
-      await userStore.fetchMyList(userStore.currentProfile.id);
-    } else if (typeof userStore.loadUserData === "function") {
-      await userStore.loadUserData();
-    } else {
-      console.log("Using existing MyList data from store");
-    }
-
     await fetchLogos();
   } catch (error) {
     console.error("Error loading My List data:", error);
@@ -350,12 +342,6 @@ watch(
     if (newProfile) {
       isLoading.value = true;
       try {
-        if (typeof userStore.fetchMyList === "function") {
-          await userStore.fetchMyList(newProfile.id);
-        } else if (typeof userStore.loadUserData === "function") {
-          await userStore.loadUserData();
-        }
-
         await fetchLogos();
       } catch (error) {
         console.error(

@@ -28,10 +28,10 @@
           Movies
         </button>
         <button
-          class="hidden bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full"
-          @click="router.push('/my-list')"
+          class="bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full"
+          @click="router.push('/favorites')"
         >
-          My List
+          Favorites
         </button>
       </div>
 
@@ -235,10 +235,7 @@ const initializeUserProfile = () => {
   }
 
   const profileIdFromUrl = route.query.profile;
-  const savedProfileId = localStorage.getItem(
-    "netflix_clone_active_profile_id"
-  );
-  let targetProfileId = profileIdFromUrl || savedProfileId;
+  let targetProfileId = profileIdFromUrl;
   let profileToSet = null;
 
   if (targetProfileId) {

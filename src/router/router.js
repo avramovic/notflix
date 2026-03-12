@@ -83,6 +83,14 @@ const routes = [
     },
   },
   {
+    path: "/favorites",
+    name: "FavoritesOverlay",
+    component: Home,
+    meta: {
+      requiresAuth: true,
+    },
+  },
+  {
     path: "/search",
     name: "Search",
     component: Search,
