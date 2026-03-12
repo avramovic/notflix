@@ -18,22 +18,16 @@
 
     <Footer />
 
-    <ContentModal
-      v-if="showContentModal"
-      :id="selectedModalContentId"
-      :contentType="selectedModalContentType"
-      @close="closeContentModal"
-    />
   </div>
 </template>
 
 <script setup>
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import Navbar from "@/components/Navbar.vue";
 import ContentCarousel from "@/components/Grids/ContentGrid/ContentCarousel.vue";
 import TopTenContentGrid from "@/components/Grids/TopTenContentGrid.vue";
 import Footer from "@/components/Footer.vue";
-import ContentModal from "@/components/ContentModal/ContentModal.vue";
 import {
   fetchNewReleases,
   fetchComingNextMonth,
@@ -43,11 +37,10 @@ import {
   fetchMovieLogos,
   fetchTVShowLogos,
 } from "@/api/tmdb";
+import { navigateToContentRoute } from "@/utils/contentRoutes";
 
+const router = useRouter();
 const isLoading = ref(true);
-const showContentModal = ref(false);
-const selectedModalContentId = ref(null);
-const selectedModalContentType = ref(null);
 
 const gridConfig = [
   {
@@ -96,19 +89,7 @@ const contentGrids = ref(
 );
 
 function handleContentClick(payload) {
-  if (payload && payload.id && payload.media_type) {
-    selectedModalContentId.value = payload.id;
-    selectedModalContentType.value = payload.media_type;
-    showContentModal.value = true;
-    document.body.style.overflow = "hidden";
-  }
-}
-
-function closeContentModal() {
-  showContentModal.value = false;
-  selectedModalContentId.value = null;
-  selectedModalContentType.value = null;
-  document.body.style.overflow = "";
+  navigateToContentRoute(router, payload);
 }
 
 async function fetchAllContent() {

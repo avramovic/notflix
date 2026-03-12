@@ -1,7 +1,7 @@
 <template>
   <div v-if="seasons && seasons.length > 0" class="mt-10">
     <div class="flex justify-between items-center mb-4 cursor-pointer">
-      <h2 class="text-2xl font-semibold">Episodes</h2>
+      <h2 class="text-2xl font-semibold text-white">Episodes</h2>
       <div v-if="seasons.length > 1" class="relative">
         <select
           v-model="selectedSeason"
@@ -38,7 +38,7 @@
           class="w-40 h-24 object-cover rounded flex-shrink-0"
         />
         <div class="flex-1">
-          <h3 class="font-bold">{{ episode.name }}</h3>
+          <h3 class="font-bold text-white">{{ episode.name }}</h3>
           <p class="text-sm text-gray-300 line-clamp-2">
             {{ episode.overview }}
           </p>
@@ -56,7 +56,7 @@ import { ref, watch, onMounted } from "vue";
 import { fetchTVShowSeasonDetails } from "@/api/tmdb";
 
 const props = defineProps({
-  tvId: { type: Number, required: true },
+  tvId: { type: [String, Number], required: true },
   seasons: { type: Array, default: () => [] },
 });
 

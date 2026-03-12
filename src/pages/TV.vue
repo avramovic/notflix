@@ -80,12 +80,6 @@
       </div>
     </div>
 
-    <ContentModal
-      v-if="modalContent.id"
-      :id="modalContent.id"
-      :content-type="modalContent.contentType"
-      @close="closeModal"
-    />
     <Footer />
   </div>
 </template>
@@ -116,7 +110,7 @@ import MobileFeaturedPoster from "@/components/Mobile/MobileFeaturedPoster.vue";
 import ContentCarousel from "@/components/Grids/ContentGrid/ContentCarousel.vue";
 import TopTenContentGrid from "@/components/Grids/TopTenContentGrid.vue";
 import Footer from "@/components/Footer.vue";
-import ContentModal from "@/components/ContentModal/ContentModal.vue";
+import { navigateToContentRoute } from "@/utils/contentRoutes";
 
 const router = useRouter();
 const route = useRoute();
@@ -129,7 +123,6 @@ const featuredTVShow = ref(null);
 const featuredTrailerKey = ref(null);
 const featuredLogo = ref(null);
 
-const modalContent = reactive({ id: null, contentType: null });
 const dominantColors = reactive({ primary: null, secondary: null });
 
 const gridConfig = [
@@ -224,20 +217,11 @@ const updateBackgroundColors = (colors) => {
 };
 
 const openModal = (content) => {
-  modalContent.id = content.id;
-  modalContent.contentType =
-    content.contentType || (content.first_air_date ? "tv" : "movie");
-  document.body.style.overflow = "hidden";
+  navigateToContentRoute(router, content);
 };
 
 const openModalFromGrid = (payload) => {
-  openModal({ id: payload.id, contentType: payload.media_type });
-};
-
-const closeModal = () => {
-  modalContent.id = null;
-  modalContent.contentType = null;
-  document.body.style.overflow = "";
+  openModal(payload);
 };
 
 const initializeUserProfile = () => {

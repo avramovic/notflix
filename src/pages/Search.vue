@@ -125,12 +125,6 @@
 
     <Footer class="mt-20" />
 
-    <ContentModal
-      v-if="showContentModal"
-      :id="selectedContentId"
-      :contentType="selectedContentType"
-      @close="closeContentModal"
-    />
   </div>
 </template>
 
@@ -143,25 +137,22 @@ import {
   onBeforeUnmount,
   reactive,
 } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import Navbar from "@/components/Navbar.vue";
 import Footer from "@/components/Footer.vue";
-import ContentModal from "@/components/ContentModal/ContentModal.vue";
 import ContentHoverCard from "@/components/ContentHoverCard/ContentHoverCard.vue";
 import { searchMulti } from "@/api/tmdb";
 import { fetchMovieLogos, fetchTVShowLogos } from "@/api/tmdb";
+import { navigateToContentRoute } from "@/utils/contentRoutes";
 
 const route = useRoute();
+const router = useRouter();
 const searchQuery = ref("");
 const searchResults = ref([]);
 const isLoading = ref(false);
 const contentLogos = ref({});
 
 const isPortraitView = ref(window.matchMedia("(max-width: 1023px)").matches);
-
-const showContentModal = ref(false);
-const selectedContentId = ref(null);
-const selectedContentType = ref(null);
 
 const hoveredItemId = ref(null);
 const mouseOver = ref(false);
@@ -249,19 +240,7 @@ async function fetchLogos() {
 }
 
 function handleContentClick(item) {
-  if (item && item.id) {
-    selectedContentId.value = item.id;
-    selectedContentType.value = item.media_type || "movie";
-    showContentModal.value = true;
-    document.body.style.overflow = "hidden";
-  }
-}
-
-function closeContentModal() {
-  showContentModal.value = false;
-  selectedContentId.value = null;
-  selectedContentType.value = null;
-  document.body.style.overflow = "";
+  navigateToContentRoute(router, item);
 }
 
 function getContentImage(path, size = "w500") {
@@ -324,10 +303,7 @@ function keepHoverOpen() {
 }
 
 function handleOpenModalFromHoverCard(payload) {
-  selectedContentId.value = payload.id;
-  selectedContentType.value = payload.contentType;
-  showContentModal.value = true;
-  document.body.style.overflow = "hidden";
+  handleContentClick(payload);
   stopHoverTimer();
 }
 

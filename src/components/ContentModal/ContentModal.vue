@@ -32,7 +32,7 @@
           @toggle-my-list="toggleMyListInModal"
         />
 
-        <div class="p-8">
+        <div class="p-8 text-white">
           <ModalDetails
             :details="details"
             :cast="cast"
@@ -65,8 +65,10 @@
 
 <script setup>
 import { computed, nextTick, reactive, ref, watch } from "vue";
+import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import { useContentModalData } from "@/composables/useContentModalData";
+import { navigateToContentRoute } from "@/utils/contentRoutes";
 
 import ModalVideoPlayer from "./ModalVideoPlayer.vue";
 import ModalDetails from "./ModalDetails.vue";
@@ -74,11 +76,12 @@ import ModalEpisodes from "./ModalEpisodes.vue";
 import ModalSimilarContent from "./ModalSimilarContent.vue";
 
 const props = defineProps({
-  id: { type: Number, required: true },
+  id: { type: [String, Number], required: true },
   contentType: { type: String, required: true },
 });
 
 const emit = defineEmits(["close"]);
+const router = useRouter();
 const userStore = useUserStore();
 const modalScrollContainer = ref(null);
 const modalState = reactive({
@@ -128,6 +131,8 @@ async function handleSimilarContentClick(item) {
 
   modalState.id = item.id;
   modalState.contentType = getMediaType(item);
+
+  await navigateToContentRoute(router, item, { replace: true });
 
   await nextTick();
   modalScrollContainer.value?.scrollTo({ top: 0, behavior: "smooth" });

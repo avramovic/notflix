@@ -1,6 +1,6 @@
 <template>
   <div v-if="similarContent && similarContent.length" class="mt-12">
-    <h2 class="text-2xl font-semibold mb-4">More Like This</h2>
+    <h2 class="text-2xl font-semibold text-white mb-4">More Like This</h2>
     <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
       <div
         v-for="item in similarContent"

@@ -90,6 +90,24 @@ const routes = [
       requiresAuth: true,
     },
   },
+  {
+    path: "/movie/:id",
+    name: "MovieDetails",
+    component: Home,
+    meta: {
+      requiresAuth: true,
+      contentType: "movie",
+    },
+  },
+  {
+    path: "/tv/:id",
+    name: "TVDetails",
+    component: Home,
+    meta: {
+      requiresAuth: true,
+      contentType: "tv",
+    },
+  },
 
   {
     path: "/:pathMatch(.*)*",

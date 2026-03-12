@@ -82,12 +82,6 @@
       </div>
     </div>
 
-    <ContentModal
-      v-if="isModalVisible"
-      :id="modalContentId"
-      :contentType="modalContentType"
-      @close="closeModal"
-    />
     <Footer />
   </div>
 </template>
@@ -108,7 +102,7 @@ import MobileFeaturedPoster from "@/components/Mobile/MobileFeaturedPoster.vue";
 import ContentCarousel from "@/components/Grids/ContentGrid/ContentCarousel.vue";
 import TopTenContentGrid from "@/components/Grids/TopTenContentGrid.vue";
 import Footer from "@/components/Footer.vue";
-import ContentModal from "@/components/ContentModal/ContentModal.vue";
+import { navigateToContentRoute } from "@/utils/contentRoutes";
 import {
   fetchTrendingMovies,
   fetchMoviesByGenre,
@@ -127,9 +121,6 @@ const featuredTrailerKey = ref(null);
 const featuredLogo = ref(null);
 
 const dominantColors = reactive({ primary: null, secondary: null });
-const isModalVisible = ref(false);
-const modalContentId = ref(null);
-const modalContentType = ref("");
 
 const gridConfig = [
   {
@@ -223,25 +214,11 @@ function checkMobileView() {
 }
 
 function openModalWithContent(contentData) {
-  if (contentData?.id && contentData?.contentType) {
-    modalContentId.value = contentData.id;
-    modalContentType.value = contentData.contentType;
-    isModalVisible.value = true;
-  }
+  navigateToContentRoute(router, contentData);
 }
 
 function openContentModal(contentFromGrid) {
-  if (contentFromGrid?.id) {
-    modalContentId.value = contentFromGrid.id;
-    modalContentType.value = contentFromGrid.media_type || "movie";
-    isModalVisible.value = true;
-  }
-}
-
-function closeModal() {
-  isModalVisible.value = false;
-  modalContentId.value = null;
-  modalContentType.value = "";
+  openModalWithContent(contentFromGrid);
 }
 
 async function fetchAllContent() {

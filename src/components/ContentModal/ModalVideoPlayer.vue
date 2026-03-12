@@ -32,7 +32,7 @@
         alt="Title Logo"
         class="lg:max-h-20 w-auto mb-6"
       />
-      <h1 v-else class="text-5xl font-bold mb-4">
+      <h1 v-else class="text-5xl font-bold text-white mb-4">
         {{ details.title || details.name }}
       </h1>
       <div class="flex items-center gap-3">

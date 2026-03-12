@@ -105,13 +105,6 @@
 
     <Footer class="mt-200" />
 
-    <ContentModal
-      v-if="showContentModal && !isMobileView"
-      :id="selectedContentId"
-      :contentType="selectedContentType"
-      @close="closeContentModal"
-    />
-
     <MobileDetails
       v-if="showMobileDetails && isMobileView"
       :contentId="selectedContentId"
@@ -130,13 +123,14 @@ import {
   onBeforeUnmount,
   reactive,
 } from "vue";
+import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import Navbar from "@/components/Navbar.vue";
 import Footer from "@/components/Footer.vue";
-import ContentModal from "@/components/ContentModal/ContentModal.vue";
 import MobileDetails from "@/components/Mobile/MobileDetails.vue";
 import { fetchMovieLogos, fetchTVShowLogos } from "@/api/tmdb";
 import ContentHoverCard from "@/components/ContentHoverCard/ContentHoverCard.vue";
+import { navigateToContentRoute } from "@/utils/contentRoutes";
 
 const props = defineProps({
   contentType: {
@@ -152,6 +146,7 @@ const props = defineProps({
   logos: Object,
 });
 
+const router = useRouter();
 const userStore = useUserStore();
 const isLoading = ref(true);
 const contentLogos = ref(props.logos || {});
@@ -159,7 +154,6 @@ const contentLogos = ref(props.logos || {});
 const isPortraitView = ref(window.matchMedia("(max-width: 1023px)").matches);
 const isMobileView = ref(window.matchMedia("(max-width: 768px)").matches);
 
-const showContentModal = ref(false);
 const showMobileDetails = ref(false);
 const selectedContentId = ref(null);
 const selectedContentType = ref(null);
@@ -197,25 +191,14 @@ const formattedListItems = computed(() => {
 
 function handleContentClick(item) {
   if (item && item.id && item.media_type) {
-    selectedContentId.value = item.id;
-    selectedContentType.value = item.media_type;
-
     if (isMobileView.value) {
+      selectedContentId.value = item.id;
+      selectedContentType.value = item.media_type;
       showMobileDetails.value = true;
     } else {
-      showContentModal.value = true;
+      navigateToContentRoute(router, item);
     }
-
-    document.body.style.overflow = "hidden";
   }
-}
-
-// Close content modal
-function closeContentModal() {
-  showContentModal.value = false;
-  selectedContentId.value = null;
-  selectedContentType.value = null;
-  document.body.style.overflow = "";
 }
 
 // Close mobile details
@@ -318,10 +301,8 @@ function keepHoverOpen() {
 }
 
 function handleOpenModalFromHoverCard(payload) {
-  selectedContentId.value = payload.id;
-  selectedContentType.value = payload.contentType;
-  showContentModal.value = true;
-  document.body.style.overflow = "hidden";
+  navigateToContentRoute(router, payload);
+
   stopHoverTimer();
 }
 
