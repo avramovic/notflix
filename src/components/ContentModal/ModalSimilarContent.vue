@@ -135,7 +135,7 @@ const toggleInList = (item) => {
 const emit = defineEmits(["content-click"]);
 
 function handleContentClick(item) {
-  window.location.href = '/search?q=' + encodeURIComponent(item.title || item.name);
+  emit("content-click", item);
 }
 </script>
 

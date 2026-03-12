@@ -5,6 +5,7 @@
   >
     <div
       v-if="!isLoading && details"
+      ref="modalScrollContainer"
       class="content-modal w-full max-h-full overflow-y-auto"
     >
       <div
@@ -39,8 +40,8 @@
           />
 
           <ModalEpisodes
-            v-if="props.contentType === 'tv'"
-            :tv-id="props.id"
+            v-if="currentContentType === 'tv'"
+            :tv-id="currentContentId"
             :seasons="details.seasons"
           />
 
@@ -48,6 +49,7 @@
             :similar-content="similarContent"
             :logos="similarLogos"
             :main-content-rating="contentRating"
+            @content-click="handleSimilarContentClick"
           />
         </div>
       </div>
@@ -62,7 +64,7 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed, nextTick, reactive, ref, watch } from "vue";
 import { useUserStore } from "@/stores/user";
 import { useContentModalData } from "@/composables/useContentModalData";
 
@@ -78,6 +80,19 @@ const props = defineProps({
 
 const emit = defineEmits(["close"]);
 const userStore = useUserStore();
+const modalScrollContainer = ref(null);
+const modalState = reactive({
+  id: props.id,
+  contentType: props.contentType,
+});
+
+watch(
+  () => [props.id, props.contentType],
+  ([newId, newContentType]) => {
+    modalState.id = newId;
+    modalState.contentType = newContentType;
+  }
+);
 
 const {
   isLoading,
@@ -88,19 +103,35 @@ const {
   similarContent,
   contentRating,
   similarLogos,
-} = useContentModalData(props);
+} = useContentModalData(modalState);
+
+const currentContentId = computed(() => modalState.id);
+const currentContentType = computed(() => modalState.contentType);
 
 const isInMyList = computed(() =>
   details.value
-    ? userStore.isItemInMyList(details.value, props.contentType)
+    ? userStore.isItemInMyList(details.value, currentContentType.value)
     : false
 );
 
 const toggleMyListInModal = () => {
   if (details.value) {
-    userStore.toggleListItem(details.value, props.contentType);
+    userStore.toggleListItem(details.value, currentContentType.value);
   }
 };
+
+const getMediaType = (item) =>
+  item.media_type || (item.first_air_date ? "tv" : "movie");
+
+async function handleSimilarContentClick(item) {
+  if (!item?.id) return;
+
+  modalState.id = item.id;
+  modalState.contentType = getMediaType(item);
+
+  await nextTick();
+  modalScrollContainer.value?.scrollTo({ top: 0, behavior: "smooth" });
+}
 
 const close = () => emit("close");
 </script>

@@ -9,7 +9,7 @@
         Not in any way associated with Netflix. For entertainment purposes only. This site does not host any videos.
       </p></li>
       <li><p>
-      Assembled by Avram. Use of ad blockers is highly recommended.
+      Assembled with ❤️. Use of ad blockers is highly recommended.
       </p></li>
       <li>
     </li>
