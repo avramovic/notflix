@@ -131,7 +131,7 @@ const featuredLogo = ref(null);
 
 const dominantColors = reactive({ primary: null, secondary: null });
 
-const gridConfig = [
+const FIXED_SECTIONS = [
   {
     id: "newReleases",
     title: "New Releases",
@@ -146,51 +146,114 @@ const gridConfig = [
     contentType: "movie",
     fetcher: fetchTopTenMovies,
   },
+];
+
+const DEFAULT_GENRE_ROWS = [
   {
-    id: "trendingTV",
-    title: "Trending TV Shows",
+    id: "actionTV",
+    title: "Action & Adventure",
     component: ContentCarousel,
     contentType: "tv",
-    fetcher: fetchTrendingTVShows,
-  },
-  {
-    id: "actionMovies",
-    title: "Action Movies",
-    component: ContentCarousel,
-    contentType: "movie",
-    fetcher: () => fetchMoviesByGenre(MOVIE_GENRES.ACTION),
+    fetcher: () => fetchTVShowsByGenre(TV_GENRES.ACTION_ADVENTURE),
   },
   {
     id: "dramaTV",
-    title: "Drama Series",
+    title: "TV Dramas",
     component: ContentCarousel,
     contentType: "tv",
     fetcher: () => fetchTVShowsByGenre(TV_GENRES.DRAMA),
   },
   {
-    id: "horrorMovies",
-    title: "Horror Movies",
-    component: ContentCarousel,
-    contentType: "movie",
-    fetcher: () => fetchMoviesByGenre(MOVIE_GENRES.HORROR),
-  },
-  {
     id: "crimeTV",
-    title: "Crime Series",
+    title: "Crime TV Shows",
     component: ContentCarousel,
     contentType: "tv",
     fetcher: () => fetchTVShowsByGenre(TV_GENRES.CRIME),
   },
   {
-    id: "romanceMovies",
-    title: "Romance Movies",
+    id: "comedyTV",
+    title: "Comedy",
     component: ContentCarousel,
-    contentType: "movie",
-    fetcher: () => fetchMoviesByGenre(MOVIE_GENRES.ROMANCE),
+    contentType: "tv",
+    fetcher: () => fetchTVShowsByGenre(TV_GENRES.COMEDY),
+  },
+  {
+    id: "documentaryTV",
+    title: "Documentaries",
+    component: ContentCarousel,
+    contentType: "tv",
+    fetcher: () => fetchTVShowsByGenre(TV_GENRES.DOCUMENTARY),
   },
 ];
+
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function getMediaType(item) {
+  return item.media_type || (item.first_air_date ? "tv" : "movie");
+}
+
+function buildGenreRowsForHome() {
+  const list = userStore.currentMyList || [];
+  const allGenreIds = list.flatMap((item) => item.genre_ids || []);
+  const distinctGenres = [...new Set(allGenreIds)];
+
+  if (distinctGenres.length < 5) {
+    return DEFAULT_GENRE_ROWS;
+  }
+
+  const countByGenre = {};
+  allGenreIds.forEach((g) => {
+    countByGenre[g] = (countByGenre[g] || 0) + 1;
+  });
+  const top5Genres = Object.entries(countByGenre)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([g]) => g);
+  const shuffled = shuffleArray(top5Genres);
+
+  const tvCount = list.filter((i) => getMediaType(i) === "tv").length;
+  const movieCount = list.filter((i) => getMediaType(i) === "movie").length;
+  const moreTV = tvCount > movieCount;
+  // Naizmenično: više serija -> TV, Movie, TV, Movie, TV; više filmova -> Movie, TV, Movie, TV, Movie
+  const rows = [];
+  for (let i = 0; i < 5; i++) {
+    const isTV = moreTV ? i % 2 === 0 : i % 2 === 1;
+    const genre = shuffled[i];
+    if (isTV) {
+      rows.push({
+        id: `genre-tv-${i}-${genre}`,
+        title: `${genre} TV Shows`,
+        component: ContentCarousel,
+        contentType: "tv",
+        fetcher: () => fetchTVShowsByGenre(genre),
+      });
+    } else {
+      rows.push({
+        id: `genre-movie-${i}-${genre}`,
+        title: `${genre} Movies`,
+        component: ContentCarousel,
+        contentType: "movie",
+        fetcher: () => fetchMoviesByGenre(genre),
+      });
+    }
+  }
+  return rows;
+}
+
+function buildContentGrids() {
+  const genreRows = buildGenreRowsForHome();
+  return [...FIXED_SECTIONS, ...genreRows];
+}
+
 const contentGrids = ref(
-  gridConfig.map((config) => ({ ...config, items: [], logos: {} }))
+  buildContentGrids().map((config) => ({ ...config, items: [], logos: {} }))
 );
 
 const backgroundGradientStyle = computed(() => {
@@ -348,17 +411,20 @@ watch(
   (newProfileId, oldProfileId) => {
     // Only fetch content if the profile ID actually changes to a new, valid ID
     if (newProfileId && newProfileId !== oldProfileId) {
+      contentGrids.value = buildContentGrids().map((config) => ({
+        ...config,
+        items: [],
+        logos: {},
+      }));
       fetchAllContent();
     } else if (!newProfileId && oldProfileId) {
       // Handle case where profile becomes null (e.g., last profile deleted)
-      // Clear content or show appropriate UI
       featuredMovie.value = null;
       contentGrids.value.forEach((grid) => (grid.items = []));
       console.log("Profile became null, content cleared.");
     }
   },
-  { immediate: true } // `immediate` can be tricky with async profile loading.
-  // The profilesLoaded watch below is more reliable for initial load.
+  { immediate: true }
 );
 
 watch(

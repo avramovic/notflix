@@ -5,7 +5,8 @@ export const CONTENT_ROUTE_NAMES = {
 
 export function getContentPath(contentType, id) {
   const normalizedType = normalizeContentType(contentType);
-  return `/${normalizedType}/${String(id)}`;
+  const pathSegment = normalizedType === "tv" ? "tv" : "movies";
+  return `/${pathSegment}/${String(id)}`;
 }
 
 export function normalizeContentType(contentType) {
@@ -68,23 +69,27 @@ export function isContentDetailsRoute(route) {
 
 export function getRouteContentPayload(route) {
   const path = route?.path || route?.fullPath || "";
-  const match = path.match(/^\/(movie|tv)\/([^/?#]+)$/);
+  const match = path.match(/^\/(movie|movies|tv)\/([^/?#]+)$/);
 
   if (!match) return null;
 
+  const segment = match[1];
+  const contentType = segment === "tv" ? "tv" : "movie";
   return {
-    contentType: normalizeContentType(match[1]),
+    contentType,
     id: String(match[2]),
   };
 }
 
 export function getPathContentPayload(pathname) {
-  const match = pathname?.match(/^\/(movie|tv)\/([^/?#]+)$/);
+  const match = pathname?.match(/^\/(movie|movies|tv)\/([^/?#]+)$/);
 
   if (!match) return null;
 
+  const segment = match[1];
+  const contentType = segment === "tv" ? "tv" : "movie";
   return {
-    contentType: normalizeContentType(match[1]),
+    contentType,
     id: String(match[2]),
   };
 }

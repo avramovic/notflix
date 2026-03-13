@@ -125,7 +125,7 @@ const featuredLogo = ref(null);
 
 const dominantColors = reactive({ primary: null, secondary: null });
 
-const gridConfig = [
+const FIXED_SECTIONS = [
   {
     id: "trendingTV",
     title: "Trending Now",
@@ -140,6 +140,9 @@ const gridConfig = [
     contentType: "tv",
     fetcher: fetchTopTenTVShows,
   },
+];
+
+const DEFAULT_GENRE_ROWS = [
   {
     id: "actionTV",
     title: "Action & Adventure",
@@ -177,8 +180,50 @@ const gridConfig = [
   },
 ];
 
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildGenreRowsForTV() {
+  const list = userStore.currentMyList || [];
+  const allGenreIds = list.flatMap((item) => item.genre_ids || []);
+  const distinctGenres = [...new Set(allGenreIds)];
+
+  if (distinctGenres.length < 5) {
+    return DEFAULT_GENRE_ROWS;
+  }
+
+  const countByGenre = {};
+  allGenreIds.forEach((g) => {
+    countByGenre[g] = (countByGenre[g] || 0) + 1;
+  });
+  const top5Genres = Object.entries(countByGenre)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([g]) => g);
+  const shuffled = shuffleArray(top5Genres);
+
+  return shuffled.map((genre, i) => ({
+    id: `genre-tv-${i}-${genre}`,
+    title: `${genre} TV Shows`,
+    component: ContentCarousel,
+    contentType: "tv",
+    fetcher: () => fetchTVShowsByGenre(genre),
+  }));
+}
+
+function buildContentGrids() {
+  const genreRows = buildGenreRowsForTV();
+  return [...FIXED_SECTIONS, ...genreRows];
+}
+
 const contentGrids = ref(
-  gridConfig.map((config) => ({ ...config, items: [], logos: {} }))
+  buildContentGrids().map((config) => ({ ...config, items: [], logos: {} }))
 );
 
 const backgroundGradientStyle = computed(() => {
@@ -330,6 +375,11 @@ watch(
   () => userStore.currentProfile?.id,
   (newProfileId, oldProfileId) => {
     if (newProfileId && newProfileId !== oldProfileId) {
+      contentGrids.value = buildContentGrids().map((config) => ({
+        ...config,
+        items: [],
+        logos: {},
+      }));
       fetchAllContent();
     } else if (!newProfileId && oldProfileId) {
       featuredTVShow.value = null;

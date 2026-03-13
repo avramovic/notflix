@@ -27,7 +27,7 @@
         <li>
           <a
             href="#"
-            @click.prevent="router.push('/TV')"
+            @click.prevent="router.push({ name: 'TV' })"
             class="hover:opacity-70 transition"
             >TV Shows</a
           >

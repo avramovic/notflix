@@ -98,13 +98,17 @@ const routes = [
     },
   },
   {
-    path: "/movie/:id",
+    path: "/movies/:id",
     name: "MovieDetails",
     component: Home,
     meta: {
       requiresAuth: true,
       contentType: "movie",
     },
+  },
+  {
+    path: "/movie/:id",
+    redirect: (to) => ({ path: `/movies/${to.params.id}`, query: to.query }),
   },
   {
     path: "/tv/:id",

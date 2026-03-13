@@ -16,21 +16,22 @@
         class="flex justify-center items-center gap-2 mt-4 mb-4"
       >
         <button
-          class="bg-transparent border-1 border-white/60 text-white/60 px-4 py-1.5 rounded-full cursor-pointer"
+          class="bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full cursor-pointer"
           @click="router.push({ name: 'TV' })"
         >
           TV Shows
         </button>
         <button
-          class="bg-transparent border-1 border-white text-white px-4 py-1.5 rounded-full cursor-pointer"
+          class="bg-transparent border border-white text-white px-4 py-1.5 rounded-full cursor-pointer"
           @click="router.push({ name: 'Movies' })"
         >
           Movies
         </button>
         <button
-          class="hidden bg-transparent border-1 border-white/60 text-white/60 px-4 py-1.5 rounded-full cursor-pointer"
+          class="bg-transparent border border-white/60 text-white/60 px-4 py-1.5 rounded-full cursor-pointer"
+          @click="router.push('/favorites')"
         >
-          My List
+          Favorites
         </button>
       </div>
 
@@ -94,8 +95,10 @@ import {
   reactive,
   onBeforeMount,
   onBeforeUnmount,
+  watch,
 } from "vue";
 import { useRouter } from "vue-router";
+import { useUserStore } from "@/stores/user";
 import Navbar from "@/components/Navbar.vue";
 import FeaturedTrailer from "@/components/FeaturedTrailer/FeaturedTrailer.vue";
 import MobileFeaturedPoster from "@/components/Mobile/MobileFeaturedPoster.vue";
@@ -113,6 +116,7 @@ import {
 } from "@/api/tmdb";
 
 const router = useRouter();
+const userStore = useUserStore();
 const isMobileView = ref(false);
 const isLoading = ref(true);
 
@@ -122,7 +126,7 @@ const featuredLogo = ref(null);
 
 const dominantColors = reactive({ primary: null, secondary: null });
 
-const gridConfig = [
+const FIXED_SECTIONS = [
   {
     id: "trending",
     title: "Trending Now",
@@ -130,6 +134,20 @@ const gridConfig = [
     contentType: "movie",
     fetcher: fetchTrendingMovies,
   },
+  {
+    id: "topTen",
+    title: "Top 10 Movies Today",
+    component: TopTenContentGrid,
+    contentType: "movie",
+    fetcher: fetchTopTenMovies,
+    process: (items) =>
+      items
+        .slice(0, 10)
+        .map((item, index) => ({ ...item, ranking: index + 1 })),
+  },
+];
+
+const DEFAULT_GENRE_ROWS = [
   {
     id: "action",
     title: "Action Movies",
@@ -145,17 +163,6 @@ const gridConfig = [
     fetcher: () => fetchMoviesByGenre(MOVIE_GENRES.HORROR),
   },
   {
-    id: "topTen",
-    title: "Top 10 Movies Today",
-    component: TopTenContentGrid,
-    contentType: "movie",
-    fetcher: fetchTopTenMovies,
-    process: (items) =>
-      items
-        .slice(0, 10)
-        .map((item, index) => ({ ...item, ranking: index + 1 })),
-  },
-  {
     id: "romance",
     title: "Romance Movies",
     component: ContentCarousel,
@@ -169,10 +176,59 @@ const gridConfig = [
     contentType: "movie",
     fetcher: () => fetchMoviesByGenre(MOVIE_GENRES.COMEDY),
   },
+  {
+    id: "documentary",
+    title: "Documentaries",
+    component: ContentCarousel,
+    contentType: "movie",
+    fetcher: () => fetchMoviesByGenre(MOVIE_GENRES.DOCUMENTARY),
+  },
 ];
 
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+function buildGenreRowsForMovies() {
+  const list = userStore.currentMyList || [];
+  const allGenreIds = list.flatMap((item) => item.genre_ids || []);
+  const distinctGenres = [...new Set(allGenreIds)];
+
+  if (distinctGenres.length < 5) {
+    return DEFAULT_GENRE_ROWS;
+  }
+
+  const countByGenre = {};
+  allGenreIds.forEach((g) => {
+    countByGenre[g] = (countByGenre[g] || 0) + 1;
+  });
+  const top5Genres = Object.entries(countByGenre)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([g]) => g);
+  const shuffled = shuffleArray(top5Genres);
+
+  return shuffled.map((genre, i) => ({
+    id: `genre-movie-${i}-${genre}`,
+    title: `${genre} Movies`,
+    component: ContentCarousel,
+    contentType: "movie",
+    fetcher: () => fetchMoviesByGenre(genre),
+  }));
+}
+
+function buildContentGrids() {
+  const genreRows = buildGenreRowsForMovies();
+  return [...FIXED_SECTIONS, ...genreRows];
+}
+
 const contentGrids = ref(
-  gridConfig.map((config) => ({ ...config, items: [], logos: {} }))
+  buildContentGrids().map((config) => ({ ...config, items: [], logos: {} }))
 );
 
 const backgroundGradientStyle = computed(() => {
@@ -274,6 +330,24 @@ async function fetchAllContent() {
     isLoading.value = false;
   }
 }
+
+watch(
+  () => userStore.currentProfile?.id,
+  (newProfileId, oldProfileId) => {
+    if (newProfileId && newProfileId !== oldProfileId) {
+      contentGrids.value = buildContentGrids().map((config) => ({
+        ...config,
+        items: [],
+        logos: {},
+      }));
+      fetchAllContent();
+    } else if (!newProfileId && oldProfileId) {
+      featuredMovie.value = null;
+      contentGrids.value.forEach((grid) => (grid.items = []));
+    }
+  },
+  { immediate: true }
+);
 
 onBeforeMount(() => {
   checkMobileView();
