@@ -516,6 +516,22 @@ export async function fetchTopTenTVShows() {
     .map((movie, index) => ({ ...movie, ranking: index + 1 }));
 }
 
+/**
+ * Fetch multiple titles by IMDb IDs in one batch request.
+ * @param {string[]} ids - Array of IMDb title IDs (e.g. ["tt15940132", "tt31227572"])
+ * @returns {Promise<Array>} Array of TMDB-like title objects (imdbToTmdb applied)
+ */
+export async function fetchTitlesBatch(ids) {
+  if (!ids || ids.length === 0) return [];
+  const params = new URLSearchParams();
+  ids.forEach((id) => params.append("titleIds", id));
+  const res = await fetch(`${BASE_URL}/titles:batchGet?${params.toString()}`);
+  if (!res.ok) throw new Error(`Failed to fetch titles batch: ${res.status}`);
+  const data = await res.json();
+  const titles = data.titles || [];
+  return titles.map((title) => imdbToTmdb(title));
+}
+
 export async function fetchMovieDetails(movieId) {
   if (preloadedMovies[movieId]) {
     return preloadedMovies[movieId];

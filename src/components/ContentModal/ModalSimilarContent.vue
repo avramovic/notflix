@@ -8,8 +8,8 @@
         class="group relative bg-netflix-gray-250 rounded-lg overflow-hidden cursor-pointer"
         @click="handleContentClick(item)"
       >
-        <div class="flex flex-col h-full">
-          <div class="aspect-video relative">
+        <div class="flex min-h-0 flex-col h-full">
+          <div class="aspect-video relative shrink-0">
             <img
               :src="
                 item.backdrop_path
@@ -38,8 +38,8 @@
             </div>
           </div>
 
-          <div class="bg-netflix-gray-800 p-2 flex flex-col flex-grow">
-            <div class="flex items-center justify-between mb-2">
+          <div class="bg-netflix-gray-800 p-2 flex min-h-0 flex-col flex-grow">
+            <div class="flex items-center justify-between mb-2 shrink-0">
               <div class="flex items-center gap-2">
 <!--                <span-->
 <!--                  class="border border-netflix-gray-100 text-md px-1 py-0 inline-flex text-netflix-gray-25 leading-tight"-->
@@ -81,7 +81,7 @@
               </button>
             </div>
             <p
-              class="relative xl:text-sm 2xl:text-md text-white/80 line-clamp-3 sm:line-clamp-4 mt-2 flex-grow"
+              class="relative xl:text-sm 2xl:text-md text-white/80 line-clamp-3 sm:line-clamp-4 mt-2 min-h-0 flex-grow overflow-hidden"
             >
               {{
                 item.overview

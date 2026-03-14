@@ -505,6 +505,13 @@ export const useUserStore = defineStore("user", () => {
     }
   }
 
+  function setCurrentProfileMyList(items) {
+    if (!currentProfile.value) return;
+    const profileId = currentProfile.value.id;
+    myLists.value[profileId] = Array.isArray(items) ? [...items] : [];
+    persistMyLists();
+  }
+
   function setRating(contentId, rating) {
     if (rating === null) {
       delete ratings.value[contentId];
@@ -550,6 +557,7 @@ export const useUserStore = defineStore("user", () => {
     addToMyList,
     removeMatchingListItems,
     removeFromMyList,
+    setCurrentProfileMyList,
 
     toggleListItem,
     availableAvatars,
