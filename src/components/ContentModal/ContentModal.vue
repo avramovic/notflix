@@ -132,7 +132,7 @@ async function handleSimilarContentClick(item) {
   modalState.id = item.id;
   modalState.contentType = getMediaType(item);
 
-  await navigateToContentRoute(router, item, { replace: true });
+  await navigateToContentRoute(router, item);
 
   await nextTick();
   modalScrollContainer.value?.scrollTo({ top: 0, behavior: "smooth" });
