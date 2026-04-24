@@ -33,10 +33,13 @@
         <span class="text-xl font-bold text-gray-400">{{
           episode.episode_number
         }}</span>
-        <img
-          :src="`${episode.still_path}`"
-          class="w-40 h-24 object-cover rounded flex-shrink-0"
-        />
+        <div class="relative w-40 h-24 flex-shrink-0">
+          <img
+            :src="`${episode.still_path}`"
+            :class="['w-full h-full object-cover rounded', { grayscale: episodeAvailability[episode.id] === false }]"
+          />
+          <NotAvailableStamp v-if="episodeAvailability[episode.id] === false" size="sm" />
+        </div>
         <div class="flex-1">
           <h3 class="font-bold text-white">{{ episode.name }}</h3>
           <p class="text-sm text-gray-300 line-clamp-2">
@@ -54,6 +57,8 @@
 <script setup>
 import { ref, watch, onMounted } from "vue";
 import { fetchTVShowSeasonDetails } from "@/api/tmdb";
+import { checkEpisodesAvailability } from "@/api/availability";
+import NotAvailableStamp from "@/components/common/NotAvailableStamp.vue";
 
 const props = defineProps({
   tvId: { type: [String, Number], required: true },
@@ -122,25 +127,34 @@ const createLightbox = (iframeSrc) => {
 
 
 const isLoadingEpisodes = ref(false);
+const episodeAvailability = ref({});
 
 const firstRealSeason = props.seasons?.find((s) => s.season_number > 0);
 const selectedSeason = ref(firstRealSeason?.season_number || 1);
 const episodes = ref([]);
 
+let seasonToken = 0;
+
 const fetchEpisodes = async (seasonNumber) => {
   if (!props.tvId || !seasonNumber) return;
+  const myToken = ++seasonToken;
+  episodeAvailability.value = {};
   isLoadingEpisodes.value = true;
   try {
     const seasonDetails = await fetchTVShowSeasonDetails(
       props.tvId,
       seasonNumber
     );
+    if (myToken !== seasonToken) return;
     episodes.value = seasonDetails.episodes || [];
+    checkEpisodesAvailability(props.tvId, episodes.value).then(map => {
+      if (myToken === seasonToken) episodeAvailability.value = map;
+    });
   } catch (error) {
     console.error(`Error fetching episodes for season ${seasonNumber}:`, error);
-    episodes.value = [];
+    if (myToken === seasonToken) episodes.value = [];
   } finally {
-    isLoadingEpisodes.value = false;
+    if (myToken === seasonToken) isLoadingEpisodes.value = false;
   }
 };
 watch(selectedSeason, (newSeason) => {

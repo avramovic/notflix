@@ -157,7 +157,7 @@ function replayTrailer() {
 }
 
 function moreInfoClick() {
-  emit("showMoreInfo", { id: props.movieId, contentType: props.contentType });
+  emit("showMoreInfo", { id: props.movieId, media_type: props.type || props.contentType });
 }
 
 function fetchContentRating() {

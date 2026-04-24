@@ -424,7 +424,7 @@ function handleContentClick(item) {
   } else {
     emit("content-click", {
       id: item.id,
-      media_type: props.contentType,
+      media_type: item.media_type || props.contentType,
     });
   }
 }
@@ -433,7 +433,7 @@ function handleOpenModalFromHoverCard(payload) {
   if (!isMobileView.value) {
     emit("content-click", {
       id: payload.id,
-      media_type: payload.contentType,
+      media_type: payload.contentType || props.contentType,
     });
   }
   isHoverCardActive.value = false;

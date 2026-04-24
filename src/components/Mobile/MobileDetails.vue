@@ -40,6 +40,7 @@
         :poster-path="content.poster_path"
         :logo-path="logoPath"
         :title="title"
+        :is-available="isAvailable"
       />
 
       <div class="px-4 py-4 relative">
@@ -96,6 +97,7 @@ import {
   fetchSimilarTVShows,
 } from "@/api/tmdb";
 import { hydrateTitlesBatch } from "@/api/batchHydrate";
+import { checkAvailability } from "@/api/availability";
 
 const props = defineProps({
   contentId: { type: Number, required: true },
@@ -115,6 +117,7 @@ const isLoading = ref(true);
 const trailerKey = ref(null);
 const logoPath = ref(null);
 const history = ref([]);
+const isAvailable = ref(true);
 
 const title = computed(() =>
   props.contentType === "movie" ? content.value.title : content.value.name
@@ -122,6 +125,7 @@ const title = computed(() =>
 
 async function loadContent(id, type) {
   isLoading.value = true;
+  isAvailable.value = true;
   content.value = {};
   cast.value = [];
   similarContent.value = [];
@@ -142,6 +146,7 @@ async function loadContent(id, type) {
       similarContent.value = similar;
       logoPath.value = null;
       hydrateTitlesBatch(similar, "movie");
+      checkAvailability('movie', id).then(v => { isAvailable.value = v; });
     } else {
       const [tvData, trailers, castData, similar] = await Promise.all([
         fetchTVShowDetails(id),

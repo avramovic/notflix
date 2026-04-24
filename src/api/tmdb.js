@@ -44,8 +44,10 @@ const imdbToTmdb = function(title) {
 
   let type = title.type;
 
-  if (type === "tvSeries") {
+  if (type?.startsWith("tv") && type !== "tvMovie") {
     type = "tv";
+  } else if (type === "movie" || type === "tvMovie" || type === "short") {
+    type = "movie";
   }
 
   return {

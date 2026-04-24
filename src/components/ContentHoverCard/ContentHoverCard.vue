@@ -73,7 +73,7 @@ async function handleToggleMyList() {
 }
 
 function handleExpandClick() {
-  emit("openModal", { id: props.item.id, contentType: props.contentType });
+  emit("openModal", { id: props.item.id, contentType: props.item.media_type || props.contentType });
 }
 
 function handlePlayClick() {

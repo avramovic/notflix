@@ -29,6 +29,7 @@
           :trailer-key="trailerKey"
           :logo-path="logoPath"
           :is-in-my-list="isInMyList"
+          :is-available="isAvailable"
           @toggle-my-list="toggleMyListInModal"
         />
 
@@ -106,6 +107,7 @@ const {
   similarContent,
   contentRating,
   similarLogos,
+  isAvailable,
 } = useContentModalData(modalState);
 
 const currentContentId = computed(() => modalState.id);

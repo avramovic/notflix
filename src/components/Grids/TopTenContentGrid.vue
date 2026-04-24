@@ -554,7 +554,7 @@ function handleContentClick(item) {
   } else {
     emit("content-click", {
       id: item.id,
-      media_type: props.contentType,
+      media_type: item.media_type || props.contentType,
     });
   }
 }

@@ -189,7 +189,7 @@ function handleClick() {
 }
 
 function emitOpenModal() {
-  emit("open-modal", { id: props.item.id, contentType: props.contentType });
+  emit("open-modal", { id: props.item.id, contentType: props.item.media_type || props.contentType });
   stopHover();
 }
 </script>

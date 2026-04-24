@@ -4,8 +4,9 @@
       v-if="!trailerKey || trailerEnded"
       :src="`${details.backdrop_path}`"
       alt="Backdrop"
-      class="w-full h-full object-cover"
+      :class="['w-full h-full object-cover', { grayscale: !isAvailable }]"
     />
+    <NotAvailableStamp v-if="!isAvailable && (!trailerKey || trailerEnded)" size="lg" />
 
     <div
       v-if="trailerKey && !trailerEnded"
@@ -37,10 +38,20 @@
       </h1>
       <div class="flex items-center gap-3">
         <button
-          class="bg-white text-black hover:bg-white/90 lg:px-7 lg:py-1.5 xl:px-7 2xl:px-9 xl:py-1.5 2xl:py-2 3xl:py-3 rounded flex items-center font-semibold cursor-pointer"
-          @click="playContent(details, $event)"
+          :class="[
+            'lg:px-7 lg:py-1.5 xl:px-7 2xl:px-9 xl:py-1.5 2xl:py-2 3xl:py-3 rounded flex items-center font-semibold',
+            isAvailable
+              ? 'bg-white text-black hover:bg-white/90 cursor-pointer'
+              : 'bg-gray-600 text-gray-400 cursor-not-allowed',
+          ]"
+          :disabled="!isAvailable"
+          @click="isAvailable && playContent(details, $event)"
         >
-          <svg fill="#000000" class="w-6 h-6 mr-2" viewBox="0 0 512 512">
+          <svg
+            :fill="isAvailable ? '#000000' : '#9ca3af'"
+            class="w-6 h-6 mr-2"
+            viewBox="0 0 512 512"
+          >
             <path
               d="M500.203,236.907L30.869,2.24c-6.613-3.285-14.443-2.944-20.736,0.939C3.84,7.083,0,13.931,0,21.333v469.333 c0,7.403,3.84,14.251,10.133,18.155c3.413,2.112,7.296,3.179,11.2,3.179c3.264,0,6.528-0.747,9.536-2.24l469.333-234.667 C507.435,271.467,512,264.085,512,256S507.435,240.533,500.203,236.907z"
             ></path>
@@ -87,12 +98,14 @@ import {
   nextTick,
 } from "vue";
 import { useUserStore } from "@/stores/user";
+import NotAvailableStamp from "@/components/common/NotAvailableStamp.vue";
 
 const props = defineProps({
   details: Object,
   trailerKey: String,
   logoPath: String,
   isInMyList: Boolean,
+  isAvailable: { type: Boolean, default: true },
 });
 
 const emit = defineEmits(["toggleMyList"]);

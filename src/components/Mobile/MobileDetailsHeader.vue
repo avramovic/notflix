@@ -11,9 +11,10 @@
             : `${posterPath}`
         "
         :alt="title"
-        class="w-full h-full object-cover"
+        :class="['w-full h-full object-cover', { grayscale: !isAvailable }]"
       />
     </div>
+    <NotAvailableStamp v-if="!isAvailable && (!trailerKey || videoEnded)" size="lg" />
 
     <div
       class="absolute inset-0 bg-gradient-to-t from-netflix-bg-gray via-transparent to-transparent pointer-events-none"
@@ -34,6 +35,7 @@
 
 <script setup>
 import { ref, watch, onBeforeUnmount, nextTick } from "vue";
+import NotAvailableStamp from "@/components/common/NotAvailableStamp.vue";
 
 const props = defineProps({
   trailerKey: String,
@@ -41,6 +43,7 @@ const props = defineProps({
   posterPath: String,
   logoPath: String,
   title: String,
+  isAvailable: { type: Boolean, default: true },
 });
 
 const youtubeContainer = ref(null);

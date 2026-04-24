@@ -55,9 +55,12 @@
                 : 'https://via.placeholder.com/300x169/000000/FFFFFF?text=No+Preview'
             "
             :alt="episode.name"
-            class="w-full h-full object-cover"
+            :class="['w-full h-full object-cover', { grayscale: episodeAvailability[episode.id] === false }]"
           />
-          <div class="absolute inset-0 flex items-center justify-center">
+          <div
+            v-if="episodeAvailability[episode.id] !== false"
+            class="absolute inset-0 flex items-center justify-center"
+          >
             <div class="bg-black/50 border border-white rounded-full p-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -69,6 +72,7 @@
               </svg>
             </div>
           </div>
+          <NotAvailableStamp v-if="episodeAvailability[episode.id] === false" size="sm" />
         </div>
         <div class="w-2/3 p-3">
           <div class="flex justify-between">
@@ -99,6 +103,8 @@
 
 <script setup>
 import { ref, computed, watch, onMounted, onBeforeUnmount } from "vue";
+import { checkEpisodesAvailability } from "@/api/availability";
+import NotAvailableStamp from "@/components/common/NotAvailableStamp.vue";
 
 const props = defineProps({
   showId: Number,
@@ -109,6 +115,8 @@ const selectedSeason = ref(null);
 const episodes = ref([]);
 const isLoadingEpisodes = ref(false);
 const isSeasonDropdownOpen = ref(false);
+const episodeAvailability = ref({});
+let seasonToken = 0;
 
 const currentSeasonName = computed(() => {
   const season = props.seasons.find(
@@ -119,6 +127,8 @@ const currentSeasonName = computed(() => {
 
 async function fetchEpisodes() {
   if (selectedSeason.value === null || !props.showId) return;
+  const myToken = ++seasonToken;
+  episodeAvailability.value = {};
   isLoadingEpisodes.value = true;
   episodes.value = [];
   try {
@@ -152,11 +162,17 @@ async function fetchEpisodes() {
       });
     }
 
-    if (eps.length > 0) episodes.value = eps;
+    if (myToken !== seasonToken) return;
+    if (eps.length > 0) {
+      episodes.value = eps;
+      checkEpisodesAvailability(props.showId, eps).then(map => {
+        if (myToken === seasonToken) episodeAvailability.value = map;
+      });
+    }
   } catch (error) {
     console.error("Error fetching episodes:", error);
   } finally {
-    isLoadingEpisodes.value = false;
+    if (myToken === seasonToken) isLoadingEpisodes.value = false;
   }
 }
 

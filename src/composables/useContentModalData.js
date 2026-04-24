@@ -12,6 +12,7 @@ import {
   fetchTVShowTrailers,
 } from "@/api/tmdb";
 import { hydrateTitlesBatch } from "@/api/batchHydrate";
+import { checkAvailability } from "@/api/availability";
 
 export function useContentModalData(props) {
   const isLoading = ref(true);
@@ -22,10 +23,12 @@ export function useContentModalData(props) {
   const similarContent = ref([]);
   const contentRating = ref(null);
   const similarLogos = ref({});
+  const isAvailable = ref(true);
 
   const loadContent = async () => {
     if (!props.id) return;
     isLoading.value = true;
+    isAvailable.value = true;
     try {
       const fetchDetailsFn =
         props.contentType === "movie" ? fetchMovieDetails : fetchTVShowDetails;
@@ -61,6 +64,11 @@ export function useContentModalData(props) {
       similarContent.value = similarRes?.slice(0, 12) || [];
       hydrateTitlesBatch(similarContent.value, props.contentType);
       logoPath.value = null;
+      if (props.contentType === 'movie') {
+        checkAvailability('movie', props.id).then(v => { isAvailable.value = v; });
+      } else if (props.contentType === 'tv') {
+        checkAvailability('tv', props.id, 1, 1).then(v => { isAvailable.value = v; });
+      }
       contentRating.value = ratingRes;
 
       if (trailersRes && trailersRes.length > 0) {
@@ -90,5 +98,6 @@ export function useContentModalData(props) {
     similarContent,
     contentRating,
     similarLogos,
+    isAvailable,
   };
 }
