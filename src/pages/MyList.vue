@@ -128,7 +128,7 @@ import { useUserStore } from "@/stores/user";
 import Navbar from "@/components/Navbar.vue";
 import Footer from "@/components/Footer.vue";
 import MobileDetails from "@/components/Mobile/MobileDetails.vue";
-import { fetchMovieLogos, fetchTVShowLogos } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 import ContentHoverCard from "@/components/ContentHoverCard/ContentHoverCard.vue";
 import { navigateToContentRoute } from "@/utils/contentRoutes";
 
@@ -215,33 +215,12 @@ function getContentImage(path, size = "w500") {
 }
 
 async function fetchLogos() {
-  try {
-    if (!userStore.currentMyList?.length) return;
-
-    const newLogos = {};
-
-    await Promise.all(
-      userStore.currentMyList.map(async (item) => {
-        const mediaType = item.media_type || "movie";
-        const logoFetch =
-          mediaType === "tv" ? fetchTVShowLogos : fetchMovieLogos;
-
-        try {
-          const logo = await logoFetch(item.id);
-          if (logo) newLogos[item.id] = logo;
-        } catch (error) {
-          console.error(
-            `Error fetching logo for ${mediaType} ID ${item.id}:`,
-            error
-          );
-        }
-      })
-    );
-
-    contentLogos.value = newLogos;
-  } catch (error) {
-    console.error("Error fetching logos:", error);
-  }
+  if (!userStore.currentMyList?.length) return;
+  const items = userStore.currentMyList;
+  const movies = items.filter((i) => (i.media_type || "movie") !== "tv");
+  const tvs = items.filter((i) => i.media_type === "tv");
+  hydrateTitlesBatch(movies, "movie");
+  hydrateTitlesBatch(tvs, "tv");
 }
 
 function startHoverTimer(itemId) {

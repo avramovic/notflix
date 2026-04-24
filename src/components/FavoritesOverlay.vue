@@ -200,7 +200,8 @@
 import { computed, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
-import { fetchMovieLogos, fetchTVShowLogos, fetchTitlesBatch } from "@/api/tmdb";
+import { fetchTitlesBatch } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 import { navigateToContentRoute } from "@/utils/contentRoutes";
 
 const TT_ID_REGEX = /^tt\d+$/;
@@ -338,26 +339,11 @@ function getYear(item) {
   return date ? new Date(date).getFullYear().toString() : "N/A";
 }
 
-async function loadLogos(items) {
-  const nextLogos = {};
-
-  await Promise.all(
-    items.map(async (item) => {
-      const fetchLogo =
-        getMediaType(item) === "tv" ? fetchTVShowLogos : fetchMovieLogos;
-
-      try {
-        const logo = await fetchLogo(item.id);
-        if (logo) {
-          nextLogos[item.id] = logo;
-        }
-      } catch (error) {
-        console.error(`Failed to load logo for ${item.id}:`, error);
-      }
-    })
-  );
-
-  logos.value = nextLogos;
+function loadLogos(items) {
+  const movies = items.filter((i) => getMediaType(i) !== "tv");
+  const tvs = items.filter((i) => getMediaType(i) === "tv");
+  hydrateTitlesBatch(movies, "movie");
+  hydrateTitlesBatch(tvs, "tv");
 }
 
 async function openContent(item) {

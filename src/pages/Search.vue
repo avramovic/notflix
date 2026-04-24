@@ -142,7 +142,7 @@ import Navbar from "@/components/Navbar.vue";
 import Footer from "@/components/Footer.vue";
 import ContentHoverCard from "@/components/ContentHoverCard/ContentHoverCard.vue";
 import { searchMulti } from "@/api/tmdb";
-import { fetchMovieLogos, fetchTVShowLogos } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 import { navigateToContentRoute } from "@/utils/contentRoutes";
 
 const route = useRoute();
@@ -202,40 +202,15 @@ async function performSearch(query) {
       (item) => item.poster_path || item.backdrop_path
     );
 
-    await fetchLogos();
+    const movies = searchResults.value.filter((i) => i.media_type !== "tv");
+    const tvs = searchResults.value.filter((i) => i.media_type === "tv");
+    hydrateTitlesBatch(movies, "movie");
+    hydrateTitlesBatch(tvs, "tv");
   } catch (error) {
     console.error("Search error:", error);
     searchResults.value = [];
   } finally {
     isLoading.value = false;
-  }
-}
-
-async function fetchLogos() {
-  try {
-    const newLogos = {};
-
-    await Promise.all(
-      searchResults.value.map(async (item) => {
-        const mediaType = item.media_type || "movie";
-        const logoFetch =
-          mediaType === "tv" ? fetchTVShowLogos : fetchMovieLogos;
-
-        try {
-          const logo = await logoFetch(item.id);
-          if (logo) newLogos[item.id] = logo;
-        } catch (error) {
-          console.error(
-            `Error fetching logo for ${mediaType} ID ${item.id}:`,
-            error
-          );
-        }
-      })
-    );
-
-    contentLogos.value = newLogos;
-  } catch (error) {
-    console.error("Error fetching logos:", error);
   }
 }
 

@@ -6,13 +6,12 @@ import {
   fetchTVShowCast,
   fetchSimilarMovies,
   fetchSimilarTVShows,
-  fetchMovieLogos,
-  fetchTVShowLogos,
   fetchMovieRatings,
   fetchTVShowRatings,
   fetchMovieTrailers,
   fetchTVShowTrailers,
 } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 
 export function useContentModalData(props) {
   const isLoading = ref(true);
@@ -40,8 +39,6 @@ export function useContentModalData(props) {
         props.contentType === "movie"
           ? fetchMovieTrailers
           : fetchTVShowTrailers;
-      const fetchLogosFn =
-        props.contentType === "movie" ? fetchMovieLogos : fetchTVShowLogos;
       const fetchRatingsFn =
         props.contentType === "movie" ? fetchMovieRatings : fetchTVShowRatings;
 
@@ -50,22 +47,20 @@ export function useContentModalData(props) {
         creditsRes,
         similarRes,
         trailersRes,
-        logoRes,
         ratingRes,
       ] = await Promise.all([
         fetchDetailsFn(props.id),
         fetchCreditsFn(props.id),
         fetchSimilarFn(props.id),
         fetchTrailersFn(props.id),
-        fetchLogosFn(props.id),
         fetchRatingsFn(props.id),
       ]);
 
       details.value = detailsRes;
       cast.value = Array.isArray(creditsRes) ? creditsRes : [];
       similarContent.value = similarRes?.slice(0, 12) || [];
-      fetchSimilarContentLogos();
-      logoPath.value = logoRes;
+      hydrateTitlesBatch(similarContent.value, props.contentType);
+      logoPath.value = null;
       contentRating.value = ratingRes;
 
       if (trailersRes && trailersRes.length > 0) {
@@ -83,26 +78,6 @@ export function useContentModalData(props) {
       isLoading.value = false;
     }
   };
-  const fetchSimilarContentLogos = async () => {
-    if (!similarContent.value || similarContent.value.length === 0) return;
-
-    const logoPromises = similarContent.value.map(async (item) => {
-      const mediaType =
-        item.media_type || (item.first_air_date ? "tv" : "movie");
-      const fetchLogoFn =
-        mediaType === "movie" ? fetchMovieLogos : fetchTVShowLogos;
-      const logo = await fetchLogoFn(item.id);
-      return { id: item.id, logo };
-    });
-
-    const logos = await Promise.all(logoPromises);
-    const newLogos = {};
-    logos.forEach(({ id, logo }) => {
-      if (logo) newLogos[id] = logo;
-    });
-    similarLogos.value = newLogos;
-  };
-
   onMounted(loadContent);
   watch(() => [props.id, props.contentType], loadContent, { immediate: true });
 

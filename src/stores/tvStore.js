@@ -201,6 +201,10 @@ export const useTVStore = defineStore("tv", () => {
     }
   }
 
+  function seedDetails(id, details) {
+    tvShowDetails.value[id] = details;
+  }
+
   function clearCache() {
     tvShowDetails.value = {};
     tvShowVideos.value = {};
@@ -258,6 +262,7 @@ export const useTVStore = defineStore("tv", () => {
     getTVRecommendations,
     getPopularTVShows,
     getTodaysShows,
+    seedDetails,
     clearCache,
   };
 });

@@ -100,7 +100,6 @@ import {
   fetchMoviesByGenre,
   fetchTopTenMovies,
   MOVIE_GENRES,
-  fetchMovieLogos,
   fetchMovieTrailers,
   fetchMovieDetails,
 } from "@/api/tmdb";
@@ -108,8 +107,8 @@ import {
   fetchTrendingTVShows,
   fetchTVShowsByGenre,
   TV_GENRES,
-  fetchTVShowLogos,
 } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 import Navbar from "@/components/Navbar.vue";
 import FeaturedTrailer from "@/components/FeaturedTrailer/FeaturedTrailer.vue";
 import MobileFeaturedPoster from "@/components/Mobile/MobileFeaturedPoster.vue";
@@ -355,30 +354,14 @@ const fetchAllContent = async () => {
     const dataPromises = contentGrids.value.map((grid) => grid.fetcher());
     const allData = await Promise.all(dataPromises);
 
-    const logoPromises = [];
     allData.forEach((items, index) => {
-      const grid = contentGrids.value[index];
-      grid.items = items;
-      const logoFetcher =
-        grid.contentType === "tv" ? fetchTVShowLogos : fetchMovieLogos;
-      items.forEach((item) => {
-        logoPromises.push(
-          logoFetcher(item.id).then((logo) => ({
-            gridId: grid.id,
-            itemId: item.id,
-            logo,
-          }))
-        );
-      });
+      contentGrids.value[index].items = items;
     });
 
-    // const allLogos = await Promise.all(logoPromises);
-    // allLogos.forEach(({ gridId, itemId, logo }) => {
-    //   if (logo) {
-    //     const grid = contentGrids.value.find((g) => g.id === gridId);
-    //     if (grid) grid.logos[itemId] = logo;
-    //   }
-    // });
+    // Pre-warm caches — fire-and-forget so page renders immediately
+    for (const grid of contentGrids.value) {
+      hydrateTitlesBatch(grid.items, grid.contentType);
+    }
 
     const moviesWithBackdrop = contentGrids.value[0].items.filter(
       (m) => m.backdrop_path

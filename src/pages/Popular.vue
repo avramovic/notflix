@@ -34,9 +34,8 @@ import {
   fetchComingSoon,
   fetchTopTenMovies,
   fetchTopTenTVShows,
-  fetchMovieLogos,
-  fetchTVShowLogos,
 } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 import { navigateToContentRoute } from "@/utils/contentRoutes";
 
 const router = useRouter();
@@ -98,32 +97,14 @@ async function fetchAllContent() {
     const dataPromises = contentGrids.value.map((grid) => grid.fetcher());
     const allData = await Promise.all(dataPromises);
 
-    const logoPromises = [];
     allData.forEach((items, index) => {
       const grid = contentGrids.value[index];
       grid.items = grid.process ? grid.process(items) : items;
-
-      const logoFetcher =
-        grid.contentType === "tv" ? fetchTVShowLogos : fetchMovieLogos;
-
-      grid.items.forEach((item) => {
-        logoPromises.push(
-          logoFetcher(item.id).then((logo) => ({
-            gridId: grid.id,
-            itemId: item.id,
-            logo,
-          }))
-        );
-      });
     });
 
-    const allLogos = await Promise.all(logoPromises);
-    allLogos.forEach(({ gridId, itemId, logo }) => {
-      if (logo) {
-        const grid = contentGrids.value.find((g) => g.id === gridId);
-        if (grid) grid.logos[itemId] = logo;
-      }
-    });
+    for (const grid of contentGrids.value) {
+      hydrateTitlesBatch(grid.items, grid.contentType);
+    }
   } catch (error) {
     console.error("Error fetching data for Popular page:", error);
   } finally {

@@ -44,6 +44,10 @@ export const useMovieStore = defineStore("movie", {
       }
     },
 
+    seedDetails(id, details) {
+      this.preloadedMovies[id] = details;
+    },
+
     async getMovieDetails(movieId) {
       if (this.preloadedMovies[movieId]) {
         return this.preloadedMovies[movieId];

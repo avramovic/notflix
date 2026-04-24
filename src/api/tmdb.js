@@ -4,6 +4,10 @@ const RATING_FILTER = "&certification_country=US&certification.lte=R";
 
 let preloadedMovies = {};
 
+export function seedPreloadedCache(id, details) {
+  preloadedMovies[id] = details;
+}
+
 const filterByBackdropPath = (results) =>
   results.filter((item) => item.backdrop_path && item.release_date && item.genre_ids);
 
@@ -112,19 +116,6 @@ export async function fetchMovieTrailers(movieId) {
   );
 }
 
-export async function fetchMovieLogos(movieId) {
-  // return null;
-  const data = await fetchMovieDetails(movieId);
-
-  let tmdb = imdbToTmdb(data);
-
-  return null;
-
-  return "https://dummyimage.com/300x100/000/fff.png&text="+encodeURIComponent(tmdb.title);
-
-  // const logos = data.logos.filter((l) => l.iso_639_1 === "en") || data.logos;
-  // return logos.length > 0 ? logos[0].file_path : null;
-}
 
 export async function fetchMovieRatings(movieId) {
   try {
@@ -438,14 +429,6 @@ export async function fetchTVShowSeasonDetails(tvId, seasonNumber) {
   }
 }
 
-export async function fetchTVShowLogos(tvId) {
-  const data = await fetchTVShowDetails(tvId);
-
-  return null;
-
-  const logos = data.logos.filter((l) => l.iso_639_1 === "en") || data.logos;
-  return logos.length > 0 ? logos[0].file_path : null;
-}
 
 export async function fetchTVShowRatings(tvId) {
   try {
@@ -521,15 +504,31 @@ export async function fetchTopTenTVShows() {
  * @param {string[]} ids - Array of IMDb title IDs (e.g. ["tt15940132", "tt31227572"])
  * @returns {Promise<Array>} Array of TMDB-like title objects (imdbToTmdb applied)
  */
+const BATCH_MAX_IDS = 5;
+
 export async function fetchTitlesBatch(ids) {
   if (!ids || ids.length === 0) return [];
-  const params = new URLSearchParams();
-  ids.forEach((id) => params.append("titleIds", id));
-  const res = await fetch(`${BASE_URL}/titles:batchGet?${params.toString()}`);
-  if (!res.ok) throw new Error(`Failed to fetch titles batch: ${res.status}`);
-  const data = await res.json();
-  const titles = data.titles || [];
-  return titles.map((title) => imdbToTmdb(title));
+
+  const chunks = [];
+  for (let i = 0; i < ids.length; i += BATCH_MAX_IDS) {
+    chunks.push(ids.slice(i, i + BATCH_MAX_IDS));
+  }
+
+  const chunkResults = await Promise.all(
+    chunks.map(async (chunk) => {
+      const params = new URLSearchParams();
+      chunk.forEach((id) => params.append("titleIds", id));
+      const res = await fetch(
+        `${BASE_URL}/titles:batchGet?${params.toString()}`
+      );
+      if (!res.ok)
+        throw new Error(`Failed to fetch titles batch: ${res.status}`);
+      const data = await res.json();
+      return data.titles || [];
+    })
+  );
+
+  return chunkResults.flat().map((title) => imdbToTmdb(title));
 }
 
 export async function fetchMovieDetails(movieId) {
@@ -548,20 +547,34 @@ export async function fetchMovieDetails(movieId) {
 }
 
 export async function fetchTVShowDetails(tvId) {
-  if (preloadedMovies[tvId]) {
-    return preloadedMovies[tvId];
+  const cached = preloadedMovies[tvId];
+  if (cached) {
+    if (cached.seasons && cached.seasons.length > 0) {
+      return cached;
+    }
+    // batch-seeded entries have seasons:[] — fetch and merge
+    const res2 = await fetch(`${BASE_URL}/titles/${tvId}/seasons`);
+    if (res2.ok) {
+      const seasonsData = await res2.json();
+      cached.seasons = (seasonsData.seasons || []).map((season) => ({
+        air_date: cached.release_date ?? null,
+        episode_count: season.episodeCount,
+        id: parseInt(season.season),
+        name: parseInt(season.season),
+        overview: null,
+        poster_path: cached.poster_path ?? null,
+        season_number: parseInt(season.season),
+        vote_average: 0,
+      }));
+    }
+    return cached;
   }
-  const res = await fetch(
-    `${BASE_URL}/titles/${tvId}`
-  );
+  const res = await fetch(`${BASE_URL}/titles/${tvId}`);
   if (!res.ok)
     throw new Error(`Failed to fetch TV show details for ID: ${tvId}`);
   const title = await res.json();
 
-
-  const res2 = await fetch(
-    `${BASE_URL}/titles/${tvId}/seasons`
-  );
+  const res2 = await fetch(`${BASE_URL}/titles/${tvId}/seasons`);
   if (!res2.ok)
     throw new Error(`Failed to fetch TV show seasons for ID: ${tvId}`);
   const seasons = await res2.json();

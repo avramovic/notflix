@@ -100,10 +100,10 @@ import {
   fetchTVShowsByGenre,
   fetchTopTenTVShows,
   TV_GENRES,
-  fetchTVShowLogos,
   fetchTVShowTrailers,
   fetchTVShowDetails,
 } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 import Navbar from "@/components/Navbar.vue";
 import FeaturedTrailer from "@/components/FeaturedTrailer/FeaturedTrailer.vue";
 import MobileFeaturedPoster from "@/components/Mobile/MobileFeaturedPoster.vue";
@@ -324,28 +324,13 @@ const fetchAllContent = async () => {
     const dataPromises = contentGrids.value.map((grid) => grid.fetcher());
     const allData = await Promise.all(dataPromises);
 
-    const logoPromises = [];
     allData.forEach((items, index) => {
-      const grid = contentGrids.value[index];
-      grid.items = items;
-      items.forEach((item) => {
-        logoPromises.push(
-          fetchTVShowLogos(item.id).then((logo) => ({
-            gridId: grid.id,
-            itemId: item.id,
-            logo,
-          }))
-        );
-      });
+      contentGrids.value[index].items = items;
     });
 
-    // const allLogos = await Promise.all(logoPromises);
-    // allLogos.forEach(({ gridId, itemId, logo }) => {
-    //   if (logo) {
-    //     const grid = contentGrids.value.find((g) => g.id === gridId);
-    //     if (grid) grid.logos[itemId] = logo;
-    //   }
-    // });
+    for (const grid of contentGrids.value) {
+      hydrateTitlesBatch(grid.items, grid.contentType);
+    }
 
     const showsWithBackdrop = contentGrids.value[0].items.filter(
       (s) => s.backdrop_path

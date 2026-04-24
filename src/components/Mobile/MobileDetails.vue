@@ -94,9 +94,8 @@ import {
   fetchTVShowCast,
   fetchSimilarMovies,
   fetchSimilarTVShows,
-  fetchMovieLogos,
-  fetchTVShowLogos,
 } from "@/api/tmdb";
+import { hydrateTitlesBatch } from "@/api/batchHydrate";
 
 const props = defineProps({
   contentId: { type: Number, required: true },
@@ -131,31 +130,31 @@ async function loadContent(id, type) {
 
   try {
     if (type === "movie") {
-      const [movieData, trailers, castData, similar, logo] = await Promise.all([
+      const [movieData, trailers, castData, similar] = await Promise.all([
         fetchMovieDetails(id),
         fetchMovieTrailers(id),
         fetchMovieCast(id),
         fetchSimilarMovies(id),
-        fetchMovieLogos(id),
       ]);
       content.value = movieData;
       if (trailers.length > 0) trailerKey.value = trailers[0].key;
       cast.value = castData.slice(0, 10);
       similarContent.value = similar;
-      logoPath.value = logo;
+      logoPath.value = null;
+      hydrateTitlesBatch(similar, "movie");
     } else {
-      const [tvData, trailers, castData, similar, logo] = await Promise.all([
+      const [tvData, trailers, castData, similar] = await Promise.all([
         fetchTVShowDetails(id),
         fetchTVShowTrailers(id),
         fetchTVShowCast(id),
         fetchSimilarTVShows(id),
-        fetchTVShowLogos(id),
       ]);
       content.value = tvData;
       if (trailers.length > 0) trailerKey.value = trailers[0].key;
       cast.value = castData.slice(0, 10);
       similarContent.value = similar;
-      logoPath.value = logo;
+      logoPath.value = null;
+      hydrateTitlesBatch(similar, "tv");
     }
   } catch (error) {
     console.error(`Error loading ${type} content:`, error);
