@@ -44,8 +44,11 @@
       <div
         v-for="episode in episodes"
         :key="episode.id"
-        class="flex bg-netflix-bg-gray rounded-md overflow-hidden cursor-pointer"
-        @click="playEpisode(episode, $event)"
+        :class="[
+          'flex bg-netflix-bg-gray rounded-md overflow-hidden',
+          episodeAvailability[episode.id] === false ? 'cursor-not-allowed' : 'cursor-pointer',
+        ]"
+        @click="episodeAvailability[episode.id] !== false && playEpisode(episode, $event)"
       >
         <div class="w-1/3 relative">
           <img

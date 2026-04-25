@@ -27,8 +27,13 @@
       <div
         v-for="episode in episodes"
         :key="episode.id"
-        class="flex items-center gap-4 p-2 rounded hover:bg-white/10 cursor-pointer"
-        @click="playEpisode(episode, $event)"
+        :class="[
+          'flex items-center gap-4 p-2 rounded',
+          episodeAvailability[episode.id] === false
+            ? 'cursor-not-allowed'
+            : 'hover:bg-white/10 cursor-pointer',
+        ]"
+        @click="episodeAvailability[episode.id] !== false && playEpisode(episode, $event)"
       >
         <span class="text-xl font-bold text-gray-400">{{
           episode.episode_number
