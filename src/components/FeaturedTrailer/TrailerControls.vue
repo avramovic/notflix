@@ -4,16 +4,25 @@
   >
     <div class="flex flex-row items-center gap-4">
       <button
-        class="bg-white hover:bg-white/80 lg:px-6 xl:px-6 2xl:px-9 3xl:px-10 lg:py-2 2xl:py-2.5 3xl:py-3 rounded transition cursor-pointer flex items-center justify-center cursor-pointer"
-        @click="playContent(movieId, type, $event)"
+        :class="[
+          'lg:px-6 xl:px-6 2xl:px-9 3xl:px-10 lg:py-2 2xl:py-2.5 3xl:py-3 rounded transition flex items-center justify-center',
+          isAvailable
+            ? 'bg-white hover:bg-white/80 cursor-pointer'
+            : 'bg-gray-600 cursor-not-allowed',
+        ]"
+        :disabled="!isAvailable"
+        @click="isAvailable && playContent(movieId, type, $event)"
       >
-        <svg fill="#000000" class="w-6 sm:w-7 mr-2" viewBox="0 0 512 512">
+        <svg :fill="isAvailable ? '#000000' : '#9ca3af'" class="w-6 sm:w-7 mr-2" viewBox="0 0 512 512">
           <path
             d="M500.203,236.907L30.869,2.24c-6.613-3.285-14.443-2.944-20.736,0.939C3.84,7.083,0,13.931,0,21.333v469.333 c0,7.403,3.84,14.251,10.133,18.155c3.413,2.112,7.296,3.179,11.2,3.179c3.264,0,6.528-0.747,9.536-2.24l469.333-234.667 C507.435,271.467,512,264.085,512,256S507.435,240.533,500.203,236.907z"
           ></path>
         </svg>
         <span
-          class="font-semibold text-sm sm:text-sm md:text-base lg:text-base xl:text-lg 2xl:text-xl 3xl:text-2xl inline-block text-black"
+          :class="[
+            'font-semibold text-sm sm:text-sm md:text-base lg:text-base xl:text-lg 2xl:text-xl 3xl:text-2xl inline-block',
+            isAvailable ? 'text-black' : 'text-gray-400',
+          ]"
           >Play</span
         >
       </button>
@@ -124,6 +133,7 @@ defineProps({
   movieId: String,
   contentType: String,
   type: String,
+  isAvailable: { type: Boolean, default: true },
 });
 
 function playContent(imdb_id, media_type, event) {

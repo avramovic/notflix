@@ -81,6 +81,7 @@
           :content-rating="contentRating"
           :movie-id="movieId"
           :type="type"
+          :is-available="isAvailable"
           @toggle-mute="isMuted = !isMuted"
           @replay="replayTrailer"
           @show-more-info="moreInfoClick"
@@ -93,6 +94,7 @@
 <script setup>
 import { computed, ref, watch, onMounted } from "vue";
 import { fetchMovieRatings, fetchTVShowRatings } from "@/api/tmdb";
+import { checkAvailability } from "@/api/availability";
 import TrailerVideoPlayer from "./TrailerVideoPlayer.vue";
 import TrailerInfoOverlay from "./TrailerInfoOverlay.vue";
 import TrailerControls from "./TrailerControls.vue";
@@ -121,6 +123,7 @@ const trailerEnded = ref(false);
 const showDescription = ref(true);
 const logoLarge = ref(true);
 const contentRating = ref(null);
+const isAvailable = ref(true);
 
 const backdrop = computed(() =>
   props.backdropPath
@@ -174,8 +177,18 @@ function fetchContentRating() {
     });
 }
 
-onMounted(fetchContentRating);
-watch(() => [props.movieId, props.contentType], fetchContentRating);
+async function fetchAvailability() {
+  if (!props.movieId) return;
+  const mediaType = props.type || props.contentType;
+  isAvailable.value = await checkAvailability(
+    mediaType,
+    props.movieId,
+    ...(mediaType === 'tv' ? [1, 1] : [])
+  );
+}
+
+onMounted(() => { fetchContentRating(); fetchAvailability(); });
+watch(() => [props.movieId, props.contentType, props.type], () => { fetchContentRating(); fetchAvailability(); });
 watch(
   () => props.trailerKey,
   () => {
